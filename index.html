@@ -5,789 +5,625 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>必比登夜市保衛戰：10分鐘營運大作戰</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@600;800;900&family=ZCOOL+KuaiLe&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
-
   <style>
-    * {
-      box-sizing: border-box;
-      user-select: none;
-      -webkit-user-select: none;
-      touch-action: manipulation;
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+    * { box-sizing: border-box; user-select: none; font-family: 'Noto Sans TC', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: #070b14; overflow: hidden; height: 100dvh; width: 100vw; }
+    .neon-text-red { text-shadow: 0 0 8px rgba(239, 68, 68, 0.8), 0 0 16px rgba(220, 38, 38, 0.4); }
+    .neon-text-gold { text-shadow: 0 0 8px rgba(251, 191, 36, 0.8), 0 0 16px rgba(245, 158, 11, 0.4); }
+    .card-slot { transition: transform 0.1s, border-color 0.2s, background-color 0.2s; }
+    .card-slot:active:not(.disabled) { transform: scale(0.95); }
+    .card-slot.selected { border-color: #38bdf8 !important; background-color: rgba(56, 189, 248, 0.25) !important; box-shadow: 0 0 12px rgba(56, 189, 248, 0.6); }
+    .cd-mask { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.75); z-index: 10; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: bold; border-radius: 0.375rem; }
+    .pulse-rest { animation: restPulse 1s infinite alternate; }
+    @keyframes restPulse { from { transform: scale(1); opacity: 0.9; } to { transform: scale(1.04); opacity: 1; } }
+
+    /* 手機旋轉動畫 */
+    @keyframes rotateDevice {
+      0%, 10% { transform: rotate(0deg); }
+      40%, 60% { transform: rotate(90deg); }
+      90%, 100% { transform: rotate(0deg); }
     }
-    html, body {
-      width: 100%;
-      height: 100dvh;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background-color: #070a12;
-      font-family: 'Noto Sans TC', sans-serif;
-    }
-    .font-market {
-      font-family: 'ZCOOL KuaiLe', 'Noto Sans TC', cursive, sans-serif;
-    }
-    .font-mono-num {
-      font-family: 'JetBrains Mono', monospace;
+    .animate-rotate-device {
+      animation: rotateDevice 2.5s infinite ease-in-out;
     }
 
-    @keyframes neon-glow {
-      0%, 100% { text-shadow: 0 0 6px #f43f5e, 0 0 16px #e11d48; }
-      50% { text-shadow: 0 0 3px #f43f5e, 0 0 8px #be123c; }
-    }
-    .neon-text {
-      animation: neon-glow 2.4s infinite alternate;
-    }
-
-    @keyframes dashboard-pulse {
-      0%, 100% { border-color: rgba(245, 158, 11, 0.45); box-shadow: 0 0 12px rgba(245, 158, 11, 0.15); }
-      50% { border-color: rgba(245, 158, 11, 0.85); box-shadow: 0 0 20px rgba(245, 158, 11, 0.35); }
-    }
-    .dashboard-glow {
-      animation: dashboard-pulse 3s infinite ease-in-out;
-    }
-
-    @keyframes camera-flash {
-      0% { opacity: 0.95; }
-      100% { opacity: 0; }
-    }
-    .flash-overlay {
-      animation: camera-flash 0.5s ease-out forwards;
-    }
-
-    @keyframes float-up {
-      0% { transform: translate(-50%, 0) scale(0.85); opacity: 1; }
-      100% { transform: translate(-50%, -32px) scale(1.1); opacity: 0; }
-    }
-    .float-text {
-      position: absolute;
-      pointer-events: none;
-      font-weight: 900;
-      animation: float-up 0.85s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-      z-index: 50;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.85);
-    }
-
-    .canvas-container {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    #gameCanvas {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      image-rendering: -webkit-optimize-contrast;
-      image-rendering: crisp-edges;
-    }
-
-    /* 半個餐盤切割效果 */
-    .plate-half-wrapper {
+    /* 餐盤半顆星樣式 */
+    .half-plate-container {
       position: relative;
       display: inline-block;
-      width: 1.8rem;
-      height: 1.8rem;
+      width: 24px;
+      height: 24px;
+      font-size: 20px;
+      line-height: 24px;
+      text-align: center;
     }
-    .plate-half-fill {
+    .half-plate-back {
+      opacity: 0.25;
+      filter: grayscale(100%);
+    }
+    .half-plate-front {
       position: absolute;
       top: 0;
       left: 0;
       width: 50%;
-      height: 100%;
       overflow: hidden;
-      filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.6));
+      white-space: nowrap;
     }
-    .plate-half-bg {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0.25;
-      filter: grayscale(1);
+
+    /* 手機橫向緊湊樣式 (Landscape Compact) */
+    @media (orientation: landscape) and (max-height: 520px) {
+      header { padding-top: 2px !important; padding-bottom: 2px !important; }
+      .header-title-sub { display: none !important; }
+      .timeline-box { padding-top: 1px !important; padding-bottom: 1px !important; }
+      .card-slot { width: 3.25rem !important; height: 3.25rem !important; }
+      .card-slot span:first-child { font-size: 1rem !important; }
+      .card-slot span:nth-child(2) { font-size: 8px !important; }
+      .card-slot span:nth-child(3) { font-size: 8px !important; }
     }
   </style>
 </head>
-<body class="flex flex-col text-slate-100 justify-between">
+<body class="flex flex-col text-white w-screen h-screen">
 
-  <!-- 頂部資訊與控制欄 -->
-  <header class="w-full flex-shrink-0 bg-slate-900/95 border-b border-rose-500/40 px-2 sm:px-4 py-1 flex items-center justify-between z-30 shadow-lg">
-    <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-      <span class="text-rose-500 text-lg sm:text-xl">🏮</span>
+  <!-- ================= 直向警示旋轉提示遮罩 (針對行動裝置) ================= -->
+  <div id="rotateOverlay" class="fixed inset-0 bg-slate-950/95 z-[100] hidden flex-col items-center justify-center p-6 text-center backdrop-blur-md">
+    <div class="relative w-24 h-24 mb-6 flex items-center justify-center">
+      <div class="text-6xl animate-rotate-device">📱</div>
+    </div>
+    <h2 class="text-xl font-black text-amber-400 mb-2 neon-text-gold">請將裝置轉為橫向進行遊戲</h2>
+    <p class="text-xs text-slate-300 max-w-xs leading-relaxed">
+      《必比登夜市保衛戰》採用寬幅多走道視野設計，轉為橫向可獲得最佳操作手感與完整視角！
+    </p>
+  </div>
+
+  <!-- 頂部資訊列 (RWD 自適應) -->
+  <header class="flex-none bg-slate-900/90 border-b border-slate-800 px-3 py-1.5 flex items-center justify-between z-30 shadow-md">
+    <!-- 左側：招牌與版本 -->
+    <div class="flex items-center gap-2">
+      <span class="text-xl">🏮</span>
       <div>
-        <h1 class="font-market text-sm sm:text-base text-rose-400 neon-text font-black tracking-wide leading-tight">
-          必比登夜市保衛戰
-        </h1>
-        <div class="text-[9px] text-amber-300 font-mono font-bold leading-none hidden sm:block">10分鐘營運・評審考驗</div>
+        <div class="flex items-center gap-1.5">
+          <h1 class="text-xs md:text-base font-black tracking-wider text-rose-400 neon-text-red leading-tight">必比登夜市保衛戰</h1>
+          <span class="bg-rose-950/80 text-rose-300 text-[9px] px-1.5 py-0.2 rounded border border-rose-800 font-mono">v1.2</span>
+        </div>
+        <p class="header-title-sub text-[10px] text-amber-300 font-semibold leading-none hidden sm:block">10分鐘米其林星級考核</p>
       </div>
     </div>
 
-    <!-- 中央儀表板 -->
-    <div class="flex-1 max-w-[280px] sm:max-w-[420px] mx-1 sm:mx-3 bg-slate-950/90 border border-amber-500/60 rounded-xl px-2 py-1 dashboard-glow flex flex-col justify-center">
-      <div class="flex items-center justify-between gap-1 text-[10px] sm:text-xs">
-        <div class="flex items-center gap-1 font-mono-num font-extrabold text-amber-300">
-          <i class="fa-regular fa-clock text-amber-400 text-[10px]"></i>
-          <span id="elapsed-time-display" class="text-xs sm:text-sm tracking-tight text-yellow-300">00:00</span>
-          <span class="text-slate-500 text-[10px]">/ 10:00</span>
-        </div>
-
-        <div class="flex items-center gap-1 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800 text-[10px] sm:text-xs font-mono-num text-cyan-300 font-bold">
-          <span class="text-[9px] text-slate-400">時鐘</span>
-          <span id="market-clock-display">17:00</span>
-        </div>
-
-        <span id="current-stage-badge" class="px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black bg-cyan-950 text-cyan-300 border border-cyan-500/50 truncate max-w-[120px] sm:max-w-none">
+    <!-- 中央：營業計時器與階段儀表板 -->
+    <div class="timeline-box flex flex-col items-center bg-slate-950/80 px-2.5 py-0.5 rounded-lg border border-slate-700/80 shadow-inner">
+      <div class="flex items-center gap-1.5 md:gap-2 text-xs md:text-sm font-bold">
+        <span class="text-amber-400 flex items-center gap-1 font-mono">
+          ⏱️ <span id="timeElapsed" class="text-xs md:text-base text-yellow-300 font-black">00:00</span> / 10:00
+        </span>
+        <span class="text-slate-400">|</span>
+        <span class="text-cyan-300 font-mono text-[10px] md:text-xs">
+          時鐘 <span id="clockTime" class="font-bold text-cyan-200">17:00</span>
+        </span>
+        <span id="stageBadge" class="text-[9px] md:text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-indigo-900/80 text-indigo-200 border border-indigo-700">
           第1階段：傍晚開市
         </span>
       </div>
 
-      <div class="w-full bg-slate-900 h-2 sm:h-2.5 rounded-full overflow-hidden border border-slate-800 relative mt-1">
-        <div id="game-progress-bar" class="h-full bg-gradient-to-r from-cyan-500 via-amber-400 to-rose-500 transition-all duration-200 rounded-full" style="width: 0%;"></div>
-        <div class="absolute top-0 bottom-0 left-[20%] w-0.5 bg-emerald-400 shadow-[0_0_4px_#34d399]" title="2分鐘換班喘息"></div>
-        <div class="absolute top-0 bottom-0 left-[40%] w-0.5 bg-emerald-400 shadow-[0_0_4px_#34d399]" title="4分鐘換班喘息"></div>
-        <div class="absolute top-0 bottom-0 left-[60%] w-0.5 bg-emerald-400 shadow-[0_0_4px_#34d399]" title="6分鐘換班喘息"></div>
-        <div class="absolute top-0 bottom-0 left-[80%] w-0.5 bg-emerald-400 shadow-[0_0_4px_#34d399]" title="8分鐘換班喘息"></div>
+      <!-- 進度條 -->
+      <div class="w-36 sm:w-48 md:w-64 h-1.5 bg-slate-800 rounded-full mt-1 overflow-hidden relative border border-slate-700">
+        <div id="timelineFill" class="h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-600 transition-all duration-300" style="width: 0%;"></div>
+        <div class="absolute top-0 bottom-0 left-[20%] w-[1.5px] bg-emerald-400/80"></div>
+        <div class="absolute top-0 bottom-0 left-[40%] w-[1.5px] bg-emerald-400/80"></div>
+        <div class="absolute top-0 bottom-0 left-[60%] w-[1.5px] bg-emerald-400/80"></div>
+        <div class="absolute top-0 bottom-0 left-[80%] w-[1.5px] bg-emerald-400/80"></div>
       </div>
     </div>
 
-    <!-- 右側金幣、心數、暫停 -->
-    <div class="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-      <div class="flex items-center gap-1 bg-amber-950/90 border border-amber-500/60 px-1.5 sm:px-2 py-0.5 rounded-xl shadow-inner">
-        <i class="fa-solid fa-coins text-amber-400 text-xs"></i>
-        <span id="money-display" class="font-mono-num font-black text-amber-300 text-xs sm:text-sm">NT$ 175</span>
+    <!-- 右側：金幣、血量、全螢幕、暫停 -->
+    <div class="flex items-center gap-1.5 md:gap-2">
+      <div class="bg-amber-950/70 border border-amber-600/70 px-2 py-0.5 md:px-2.5 md:py-1 rounded-md flex items-center gap-1 shadow-sm">
+        <span class="text-xs md:text-sm">🪙</span>
+        <span id="moneyDisplay" class="font-mono font-black text-amber-300 text-xs md:text-base neon-text-gold">NT$ 175</span>
       </div>
-      <div class="flex items-center gap-1 bg-rose-950/80 border border-rose-500/50 px-1.5 sm:px-2 py-0.5 rounded-xl">
-        <i class="fa-solid fa-heart text-rose-500 text-xs"></i>
-        <span id="lives-display" class="font-mono-num font-black text-rose-300 text-xs sm:text-sm">3</span>
+
+      <div class="bg-rose-950/70 border border-rose-600/70 px-1.5 py-0.5 md:px-2 md:py-1 rounded-md flex items-center gap-0.5 text-rose-300 text-xs md:text-sm font-bold">
+        <span>❤️</span>
+        <span id="healthDisplay">3</span>
       </div>
-      <button id="btn-sound" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 flex items-center justify-center text-xs border border-slate-700" title="音效切換">
-        <i class="fa-solid fa-volume-high"></i>
+
+      <!-- 全螢幕切換按鈕 -->
+      <button id="fullscreenBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1 md:p-1.5 rounded-md text-xs border border-slate-700" title="全螢幕切換">
+        ⛶
       </button>
-      <button id="btn-pause-toggle" class="h-7 sm:h-8 px-2 sm:px-2.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold flex items-center gap-1 text-xs border border-amber-400/60 transition active:scale-95" title="暫停遊戲 (Space/Esc)">
-        <i class="fa-solid fa-pause"></i>
-        <span class="hidden sm:inline">暫停</span>
+
+      <!-- 靜音切換按鈕 -->
+      <button id="muteBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1 md:p-1.5 rounded-md text-xs border border-slate-700">
+        🔊
+      </button>
+
+      <!-- 暫停按鈕 -->
+      <button id="pauseBtn" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-black px-2 py-0.5 md:px-2.5 md:py-1 rounded-md text-xs md:text-sm flex items-center gap-0.5 shadow-md">
+        ⏸️ <span class="hidden sm:inline">暫停</span>
       </button>
     </div>
   </header>
 
-  <!-- 攤位選擇列 -->
-  <div class="w-full flex-shrink-0 bg-slate-900/90 border-b border-slate-800 px-2 py-1 flex items-center justify-between gap-1 overflow-x-auto z-20">
-    <div class="flex items-center gap-1.5 sm:gap-2">
-      <button data-type="boba" class="stall-btn relative flex flex-col items-center justify-center w-12 h-14 sm:w-16 sm:h-16 rounded-xl bg-slate-800 border-2 border-slate-700 p-0.5 transition active:scale-95">
-        <span class="text-base sm:text-xl">🧋</span>
-        <span class="text-[9px] sm:text-[10px] font-black text-amber-200 leading-tight">珍奶機</span>
-        <span class="text-[8px] sm:text-[9px] font-mono-num text-amber-400 bg-black/50 px-1 rounded-full leading-tight">$45</span>
-        <div class="stall-cd absolute inset-0 bg-slate-950/80 rounded-xl flex items-center justify-center text-[10px] font-mono text-white hidden">0s</div>
-      </button>
-
-      <button data-type="chicken" class="stall-btn relative flex flex-col items-center justify-center w-12 h-14 sm:w-16 sm:h-16 rounded-xl bg-slate-800 border-2 border-slate-700 p-0.5 transition active:scale-95">
-        <span class="text-base sm:text-xl">🍗</span>
-        <span class="text-[9px] sm:text-[10px] font-black text-amber-200 leading-tight">鹹酥雞</span>
-        <span class="text-[8px] sm:text-[9px] font-mono-num text-amber-400 bg-black/50 px-1 rounded-full leading-tight">$75</span>
-        <div class="stall-cd absolute inset-0 bg-slate-950/80 rounded-xl flex items-center justify-center text-[10px] font-mono text-white hidden">0s</div>
-      </button>
-
-      <button data-type="sausage" class="stall-btn relative flex flex-col items-center justify-center w-12 h-14 sm:w-16 sm:h-16 rounded-xl bg-slate-800 border-2 border-slate-700 p-0.5 transition active:scale-95">
-        <span class="text-base sm:text-xl">🌭</span>
-        <span class="text-[9px] sm:text-[10px] font-black text-amber-200 leading-tight">大腸小腸</span>
-        <span class="text-[8px] sm:text-[9px] font-mono-num text-amber-400 bg-black/50 px-1 rounded-full leading-tight">$50</span>
-        <div class="stall-cd absolute inset-0 bg-slate-950/80 rounded-xl flex items-center justify-center text-[10px] font-mono text-white hidden">0s</div>
-      </button>
-
-      <button data-type="tofu" class="stall-btn relative flex flex-col items-center justify-center w-12 h-14 sm:w-16 sm:h-16 rounded-xl bg-slate-800 border-2 border-slate-700 p-0.5 transition active:scale-95">
-        <span class="text-base sm:text-xl">🍲</span>
-        <span class="text-[9px] sm:text-[10px] font-black text-amber-200 leading-tight">臭豆腐</span>
-        <span class="text-[8px] sm:text-[9px] font-mono-num text-amber-400 bg-black/50 px-1 rounded-full leading-tight">$90</span>
-        <div class="stall-cd absolute inset-0 bg-slate-950/80 rounded-xl flex items-center justify-center text-[10px] font-mono text-white hidden">0s</div>
-      </button>
-
-      <!-- 芒果刨冰機：9 秒 CD -->
-      <button data-type="ice" class="stall-btn relative flex flex-col items-center justify-center w-12 h-14 sm:w-16 sm:h-16 rounded-xl bg-slate-800 border-2 border-slate-700 p-0.5 transition active:scale-95">
-        <span class="text-base sm:text-xl">🍧</span>
-        <span class="text-[9px] sm:text-[10px] font-black text-amber-200 leading-tight">芒果冰</span>
-        <span class="text-[8px] sm:text-[9px] font-mono-num text-amber-400 bg-black/50 px-1 rounded-full leading-tight">$100</span>
-        <div class="stall-cd absolute inset-0 bg-slate-950/80 rounded-xl flex items-center justify-center text-[10px] font-mono text-white hidden">0s</div>
-      </button>
-
-      <button id="btn-shovel" class="flex flex-col items-center justify-center w-10 h-14 sm:w-12 sm:h-16 rounded-xl bg-slate-800 border-2 border-slate-700 p-0.5 transition active:scale-95" title="拆除攤位">
-        <span class="text-sm sm:text-base">🧹</span>
-        <span class="text-[8px] sm:text-[9px] font-black text-rose-300 mt-0.5">拆除</span>
-      </button>
-    </div>
-
-    <div id="stall-tip-box" class="flex-1 max-w-xs sm:max-w-md mx-2 px-2.5 py-1 bg-slate-950/90 border border-slate-700 rounded-xl text-[10px] sm:text-xs text-slate-300 flex items-center justify-between shadow-inner">
-      <span id="stall-tip-text" class="text-amber-300/90 truncate font-medium">💡 點選上方攤位放置！珍奶機 $45 產幣，芒果冰 9秒CD 急凍全列！</span>
-    </div>
-  </div>
-
-  <!-- 主遊戲畫面 -->
-  <main class="w-full flex-1 relative overflow-hidden flex items-center justify-center p-1 sm:p-2 bg-slate-950" id="canvas-wrapper">
-    <div class="canvas-container relative w-full h-full max-w-[960px] max-h-[540px] aspect-[16/9]">
-      <canvas id="gameCanvas" width="960" height="540" class="rounded-xl shadow-2xl border-2 border-slate-800 bg-slate-900"></canvas>
-
-      <div id="flash-layer" class="absolute inset-0 bg-white pointer-events-none opacity-0 z-40 rounded-xl"></div>
-
-      <!-- 3秒換班喘息提示條 -->
-      <div id="breather-banner" class="absolute top-1/2 left-0 right-0 transform -translate-y-1/2 bg-emerald-600/95 text-white border-y-4 border-emerald-300 py-2.5 sm:py-3.5 text-center shadow-2xl z-40 pointer-events-none hidden transition-all duration-300">
-        <div class="font-market text-xl sm:text-3xl font-black tracking-widest drop-shadow-md text-emerald-100 flex items-center justify-center gap-2">
-          <span>🍵 換班喘息時間！</span>
-          <span id="breather-seconds-left" class="bg-black/40 px-2 py-0.5 rounded-lg text-amber-300 text-lg font-mono-num">3s</span>
-        </div>
-        <p class="text-[11px] sm:text-xs font-sans font-bold text-white mt-1">
-          ✨ 整理補貨中（暫停出怪 3 秒）！清潔獎勵 <span class="text-amber-300 font-black">+NT$ 50</span>！
-        </p>
+  <!-- 次導航：攤位選擇列 -->
+  <section class="flex-none bg-slate-950/90 border-b border-slate-800 px-2 md:px-3 py-1 flex items-center justify-between gap-1 z-20">
+    <div class="flex items-center gap-1 md:gap-1.5 overflow-x-auto py-0.5">
+      <div class="card-slot relative bg-slate-900 border border-slate-700 rounded-md p-1 flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 cursor-pointer" data-type="boba">
+        <div class="cd-mask hidden" id="cd-boba">0s</div>
+        <span class="text-base md:text-xl leading-none">🧋</span>
+        <span class="text-[9px] md:text-[10px] font-bold text-slate-200 mt-0.5">珍奶機</span>
+        <span class="text-[8px] md:text-[9px] font-mono text-amber-400 font-bold">$45</span>
       </div>
 
-      <!-- 必比登神秘客突襲警告 -->
-      <div id="michelin-banner" class="absolute top-1/2 left-0 right-0 transform -translate-y-1/2 bg-rose-600/95 text-amber-200 border-y-4 border-amber-400 py-2.5 sm:py-3.5 text-center shadow-2xl z-40 pointer-events-none hidden transition-all duration-300">
-        <div class="font-market text-xl sm:text-3xl font-black tracking-widest drop-shadow-md">
-          ★ 必比登神秘客 突擊暗訪！ ★
-        </div>
-        <p class="text-[10px] sm:text-xs font-sans font-bold text-white mt-0.5">
-          穿風衣手握金叉的挑剔評審登場！全體攤位準備接受嚴格考驗！
-        </p>
+      <div class="card-slot relative bg-slate-900 border border-slate-700 rounded-md p-1 flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 cursor-pointer" data-type="chicken">
+        <div class="cd-mask hidden" id="cd-chicken">0s</div>
+        <span class="text-base md:text-xl leading-none">🍗</span>
+        <span class="text-[9px] md:text-[10px] font-bold text-slate-200 mt-0.5">鹹酥雞</span>
+        <span class="text-[8px] md:text-[9px] font-mono text-amber-400 font-bold">$75</span>
       </div>
 
-      <div id="float-layer" class="absolute inset-0 pointer-events-none z-30"></div>
+      <div class="card-slot relative bg-slate-900 border border-slate-700 rounded-md p-1 flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 cursor-pointer" data-type="sausage">
+        <div class="cd-mask hidden" id="cd-sausage">0s</div>
+        <span class="text-base md:text-xl leading-none">🌭</span>
+        <span class="text-[9px] md:text-[10px] font-bold text-slate-200 mt-0.5">大腸包小腸</span>
+        <span class="text-[8px] md:text-[9px] font-mono text-amber-400 font-bold">$50</span>
+      </div>
+
+      <div class="card-slot relative bg-slate-900 border border-slate-700 rounded-md p-1 flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 cursor-pointer" data-type="tofu">
+        <div class="cd-mask hidden" id="cd-tofu">0s</div>
+        <span class="text-base md:text-xl leading-none">🍲</span>
+        <span class="text-[9px] md:text-[10px] font-bold text-slate-200 mt-0.5">臭豆腐</span>
+        <span class="text-[8px] md:text-[9px] font-mono text-amber-400 font-bold">$90</span>
+      </div>
+
+      <div class="card-slot relative bg-slate-900 border border-slate-700 rounded-md p-1 flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 cursor-pointer" data-type="ice">
+        <div class="cd-mask hidden" id="cd-ice">0s</div>
+        <span class="text-base md:text-xl leading-none">🍧</span>
+        <span class="text-[9px] md:text-[10px] font-bold text-cyan-300 mt-0.5">芒果冰</span>
+        <span class="text-[8px] md:text-[9px] font-mono text-amber-400 font-bold">$100</span>
+      </div>
+
+      <div class="card-slot relative bg-slate-900 border border-slate-700 rounded-md p-1 flex flex-col items-center justify-center w-11 h-12 md:w-14 md:h-16 cursor-pointer" data-type="shovel">
+        <span class="text-base md:text-lg leading-none">🧹</span>
+        <span class="text-[9px] md:text-[10px] font-bold text-rose-300 mt-0.5">拆除</span>
+      </div>
+    </div>
+
+    <!-- 即時功能提示框 -->
+    <div id="unitTooltip" class="hidden md:flex flex-1 max-w-md bg-slate-900/90 border border-slate-700 px-3 py-1 rounded-md text-[11px] text-slate-300 items-center justify-between shadow-sm">
+      <span id="tooltipContent">點選攤位後在紅磚道部署，滑鼠或手指滑過硬幣即可拾取。</span>
+    </div>
+  </section>
+
+  <!-- 主畫布容器 (完全自適應) -->
+  <main class="flex-1 relative flex items-center justify-center bg-slate-950 p-1 overflow-hidden" id="canvasContainer">
+    <div class="relative w-full h-full flex items-center justify-center">
+      <canvas id="gameCanvas" width="960" height="540" class="bg-[#111827] rounded-lg shadow-2xl border border-slate-800 cursor-crosshair"></canvas>
+
+      <!-- 3秒換班喘息提示橫幅 -->
+      <div id="restBanner" class="absolute top-3 left-1/2 -translate-x-1/2 hidden bg-emerald-600/95 border-2 border-emerald-300 text-white font-black px-4 py-1.5 md:px-6 md:py-2 rounded-full shadow-2xl flex items-center gap-2 pulse-rest z-20 pointer-events-none">
+        <span class="text-base md:text-lg">☕</span>
+        <span class="text-xs md:text-sm tracking-wide">換班喘息時間！補貨整理中（暫停出怪 3 秒）</span>
+      </div>
     </div>
   </main>
 
-  <!-- 暫停選單 (包含回主選單) -->
-  <div id="modal-pause" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border-4 border-amber-500 rounded-3xl p-6 sm:p-7 max-w-xs sm:max-w-sm w-full text-center shadow-2xl">
-      <div class="text-4xl mb-1">⏸️ 🍵</div>
-      <h2 class="font-market text-2xl sm:text-3xl text-amber-300 mb-1">遊戲暫停中</h2>
-      <p class="text-xs text-slate-400 mb-5">夜市營業暫時凍結，隨時準備重新開工！</p>
+  <!-- 開始畫面 Modal (含廣告招商展位與版本紀錄) -->
+  <div id="startModal" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center z-50 p-3 overflow-y-auto">
+    <div class="max-w-3xl w-full flex flex-col md:flex-row items-center gap-4 bg-slate-900/95 border border-slate-700 rounded-2xl p-5 shadow-2xl">
+      
+      <!-- 主選單核心 -->
+      <div class="flex-1 text-center md:text-left">
+        <div class="inline-flex items-center gap-2 mb-1">
+          <span class="text-3xl">🏮</span>
+          <span class="bg-rose-950 border border-rose-600 text-rose-300 text-[10px] px-2 py-0.5 rounded font-mono font-bold">版本 v1.2</span>
+        </div>
+        <h2 class="text-2xl md:text-3xl font-black text-rose-400 neon-text-red mb-1">必比登夜市保衛戰</h2>
+        <p class="text-xs text-amber-300 font-bold mb-3 tracking-wider">10分鐘米其林神秘客暗訪傳奇</p>
 
-      <div class="space-y-2.5">
-        <button id="btn-pause-resume" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 font-market text-slate-950 font-black text-sm shadow-lg shadow-emerald-500/25 transition active:scale-95 flex items-center justify-center gap-2">
-          <i class="fa-solid fa-play"></i> 繼續經營 (Resume)
+        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 space-y-1 mb-4 leading-relaxed">
+          <p class="text-amber-200 font-bold">🎯 經營目標：</p>
+          <p>• 堅持營運滿 <b class="text-yellow-300">10 分鐘（24:00 打烊）</b>，衝刺最高 5 個米其林餐盤評價！</p>
+          <p>• 每 2 分鐘進行一次 <b class="text-emerald-300">3 秒極速換班</b>，發放 NT$50 整備獎金！</p>
+          <p>• 手機玩家請橫向持握以獲得最佳寬螢幕視野。</p>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button id="showGuideBtn" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2 rounded-xl text-xs border border-slate-700">
+            📖 經營指南
+          </button>
+          <button id="showChangelogBtn" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2 rounded-xl text-xs border border-slate-700">
+            📜 版本紀錄
+          </button>
+          <button id="realStartBtn" class="w-full bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-slate-950 font-black py-2.5 rounded-xl text-sm shadow-lg transition-transform active:scale-95">
+            🚀 開始營業
+          </button>
+        </div>
+      </div>
+
+      <!-- 右側：預留招商/廣告熱位 (Sponsorship Box) -->
+      <div class="w-full md:w-64 bg-slate-950/90 border border-amber-500/40 rounded-xl p-3 flex flex-col items-center text-center shadow-inner">
+        <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/40 font-bold mb-2">⭐ 熱門攤位合作招商</span>
+        <div class="w-full h-24 bg-slate-900 border border-dashed border-slate-700 rounded-lg flex flex-col items-center justify-center p-2 text-slate-400">
+          <span class="text-2xl mb-1">📢</span>
+          <span class="text-[11px] font-bold text-slate-300">黃金廣告展示看板</span>
+          <span class="text-[9px] text-slate-500 mt-0.5">預留品牌合作／夜市特產聯名版位</span>
+        </div>
+        <p class="text-[9px] text-slate-400 mt-2">支持在地小吃與台灣文創，歡迎洽詢版位刊登。</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 暫停選單 Modal (四功能：繼續 / 說明 / 重玩 / 回首頁) -->
+  <div id="pauseModal" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-slate-900 border border-slate-700 max-w-sm w-full rounded-2xl p-5 text-center shadow-2xl">
+      <div class="text-4xl mb-2">⏸️</div>
+      <h3 class="text-xl font-black text-amber-300 mb-1">營業暫停中</h3>
+      <p class="text-xs text-slate-400 mb-4">夜市時鐘與顧客步伐已凍結</p>
+
+      <div class="space-y-2">
+        <button id="resumeBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black py-2.5 rounded-xl text-xs md:text-sm shadow-md transition-transform active:scale-95 flex items-center justify-center gap-1">
+          ▶️ 繼續營業
         </button>
-        <button id="btn-pause-guide" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 font-bold text-xs sm:text-sm transition active:scale-95 flex items-center justify-center gap-2">
-          <i class="fa-solid fa-book-open"></i> 觀看經營指南 (Guide)
+        <button id="pauseGuideBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2 rounded-xl text-xs border border-slate-700 flex items-center justify-center gap-1">
+          📖 查看攤位與客人指南
         </button>
-        <button id="btn-pause-restart" class="w-full py-2 rounded-xl bg-rose-950/60 hover:bg-rose-900/60 text-rose-300 border border-rose-600/50 font-bold text-xs transition active:scale-95 flex items-center justify-center gap-2">
-          <i class="fa-solid fa-rotate-right"></i> 重新開始本局 (Restart)
+        <button id="restartBtn" class="w-full bg-amber-900/60 hover:bg-amber-800 text-amber-200 font-bold py-2 rounded-xl text-xs border border-amber-700 flex items-center justify-center gap-1">
+          🔄 重新開始本局
         </button>
-        <!-- 回到起始畫面 -->
-        <button id="btn-pause-home" class="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-bold text-xs transition active:scale-95 flex items-center justify-center gap-2">
-          <i class="fa-solid fa-house"></i> 回到主選單 (Home)
+        <button id="returnHomeBtn" class="w-full bg-rose-950/60 hover:bg-rose-900 text-rose-300 font-bold py-2 rounded-xl text-xs border border-rose-800 flex items-center justify-center gap-1">
+          🚪 回到主選單（起始畫面）
         </button>
       </div>
     </div>
   </div>
 
-  <!-- 首頁開始畫面 (含廣告招商與版本入口) -->
-  <div id="modal-start" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-    <div class="bg-slate-900 border-4 border-rose-500 rounded-3xl p-5 sm:p-7 max-w-lg w-full text-center shadow-2xl relative my-auto">
-      
-      <!-- 頂端版本號按鈕 -->
-      <button id="btn-open-changelog" class="absolute top-4 left-4 text-[10px] font-mono-num font-bold px-2 py-0.5 rounded-full bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 transition" title="查看更新歷程">
-        v1.3.0 📜
-      </button>
-
-      <div class="text-4xl sm:text-5xl mb-2 mt-1">🏮 🍽️ 🧋</div>
-      <h1 class="font-market text-2xl sm:text-4xl text-rose-400 neon-text font-black mb-1">
-        必比登夜市保衛戰
-      </h1>
-      <p class="text-amber-300 font-bold text-xs sm:text-sm mb-4">★ 10分鐘夜市營運・5個餐盤評審考核 ★</p>
-
-      <!-- 招商廣告展示區塊 -->
-      <div class="bg-slate-950/90 border border-amber-500/40 rounded-2xl p-3 mb-4 text-left relative overflow-hidden shadow-inner">
-        <div class="flex items-center justify-between mb-1">
-          <span class="text-[10px] font-bold text-amber-400 flex items-center gap-1">
-            <i class="fa-solid fa-bullhorn text-amber-400"></i> 【合作招商・廣告熱位】
-          </span>
-          <span class="text-[9px] bg-rose-950/80 text-rose-300 px-1.5 py-0.5 rounded border border-rose-800">熱烈招商中</span>
+  <!-- 版本紀錄與作者資訊 Modal -->
+  <div id="changelogModal" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-slate-900 border border-slate-700 max-w-md w-full max-h-[85vh] rounded-2xl p-5 flex flex-col shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-sm font-black text-amber-400 flex items-center gap-1.5">📜 版本更新與製作團隊</h3>
+        <button id="closeChangelogBtn" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
+      </div>
+      <div class="flex-1 overflow-y-auto py-3 space-y-3 text-xs text-slate-300 pr-1">
+        <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+          <p class="font-bold text-amber-300 mb-1">【製作團隊資訊】</p>
+          <p>• <b>遊戲企劃與設計</b>：台灣在地夜市創生小組</p>
+          <p>• <b>核心主題</b>：小吃文化傳承、米其林美食評審制度、休閒塔防策略</p>
+          <p>• <b>技術架構</b>：HTML5 Canvas + 純前端 Web Audio API（單檔綠色免安裝）</p>
         </div>
-        <p class="text-[11px] text-slate-300 leading-relaxed">
-          歡迎在地小吃品牌、文創品牌與夜市聯名合作！支援自訂橫幅贊助、專屬限定攤位外觀置入。
-        </p>
-        <div class="mt-2 flex items-center justify-between text-[10px] text-slate-400 border-t border-slate-800/80 pt-1.5">
-          <span>商務合作信箱：contact@nightmarket.game</span>
-          <span class="text-amber-300 underline cursor-pointer hover:text-amber-200">了解詳情 ➜</span>
+        <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+          <p class="font-bold text-cyan-300 mb-1">【版本歷程】</p>
+          <p>• <b>v1.2.0</b>：加入行動裝置橫向偵測與引導、全螢幕支援、米其林 5 餐盤評分系統（含 0.5 盤階）、暫停返回主選單。</p>
+          <p>• <b>v1.1.0</b>：修復 Canvas 座標偏移 BUG、非初級敵人血量提升 50%、芒果冰 CD 縮短至 9 秒、換班喘息調整為 3 秒。</p>
+          <p>• <b>v1.0.0</b>：夜市保衛戰核心成型，具備 5 走道、5 攤位、必比登神秘客暗訪機制。</p>
         </div>
       </div>
+      <button id="closeChangelogBtn2" class="mt-2 w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 rounded-xl text-xs">關閉說明</button>
+    </div>
+  </div>
 
-      <div class="bg-slate-950/80 p-3 rounded-2xl border border-slate-800 text-left text-xs text-slate-300 space-y-1.5 mb-5">
-        <p>🍽️ <b>米其林餐盤評分</b>：撐過 10 分鐘，爭奪最高 <b>5.0 個餐盤</b> 榮譽肯定！</p>
-        <p>⏰ <b>10 分鐘營業時鐘</b>：頂部儀表即時顯示 5 大階段與時鐘（17:00 ~ 24:00）。</p>
-        <p>🍵 <b>每 2 分鐘 3 秒換班</b>：短暫整理補貨並獲得 NT$ 50 清潔獎金！</p>
-        <p>🍧 <b>芒果刨冰急凍</b>：冷卻縮短至 9 秒，關鍵時刻全行急凍 3.5 秒救急！</p>
+  <!-- 說明指南 Modal -->
+  <div id="guideModal" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-slate-900 border border-slate-700 max-w-lg w-full max-h-[85vh] rounded-2xl p-5 flex flex-col shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-sm font-black text-amber-400 flex items-center gap-1.5">📖 夜市攤位與顧客指南</h3>
+        <button id="closeGuideBtn" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
+      </div>
+      <div class="flex-1 overflow-y-auto py-3 space-y-3 text-xs text-slate-300 pr-1">
+        <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+          <p class="font-bold text-amber-300 mb-1">【招牌攤位配置】</p>
+          <p>• 🧋 <b>珍奶機 ($45)</b>：每 6.5 秒產出 $25 銅板，是擴建重要經濟來源。</p>
+          <p>• 🍗 <b>鹹酥雞 ($75)</b>：直線投擲香脆雞塊，主要輸出單位。</p>
+          <p>• 🌭 <b>大腸包小腸 ($50)</b>：耐久 300 HP，厚實路障阻擋人潮。</p>
+          <p>• 🍲 <b>臭豆腐 ($90)</b>：脈衝香氣減速 35% 並造成小吃餵食傷害。</p>
+          <p>• 🍧 <b>芒果冰 ($100)</b>：CD 僅 9 秒！引爆急凍整行走廊 3.5 秒救場神技。</p>
+        </div>
+        <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+          <p class="font-bold text-rose-300 mb-1">【米其林神秘客考核】</p>
+          <p>第 7 分鐘（420 秒）米其林必比登神秘客將親臨中央走道！成功餵飽後全場獲得攻速 +50% 狂熱狀態，並直接取得評分餐盤加分！</p>
+        </div>
+      </div>
+      <button id="closeGuideBtn2" class="mt-2 w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 rounded-xl text-xs">我知道了，關閉說明</button>
+    </div>
+  </div>
+
+  <!-- 結算畫面 (5個餐盤評分系統，支援半個餐盤) -->
+  <div id="endModal" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+    <div class="bg-slate-900 border border-slate-700 max-w-sm w-full rounded-2xl p-6 text-center shadow-2xl">
+      <div id="endIcon" class="text-4xl mb-1">🍽️</div>
+      <h3 id="endTitle" class="text-xl md:text-2xl font-black text-amber-300 mb-1">24:00 打烊圓滿通關！</h3>
+      <p id="endSubtitle" class="text-xs text-slate-300 mb-3">米其林必比登星級評定結果</p>
+
+      <!-- 5個餐盤評分展示區 -->
+      <div class="bg-slate-950 border border-amber-600/50 rounded-xl p-3 mb-4">
+        <div class="text-[10px] text-amber-400 font-bold mb-1">【官方米其林餐盤榮譽】</div>
+        <div id="platesDisplay" class="flex justify-center items-center gap-1.5 my-1">
+          <!-- 動態生成餐盤 -->
+        </div>
+        <div class="text-lg font-mono font-black text-amber-300 mt-1">
+          <span id="scoreNumber">4.5</span> <span class="text-xs text-slate-400">/ 5.0 🍽️</span>
+        </div>
+        <div id="michelinVerdict" class="text-xs font-bold text-rose-300 mt-0.5">驚豔味蕾・三星潛力排隊名店</div>
+      </div>
+
+      <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 space-y-1 mb-4 text-left">
+        <div class="flex justify-between"><span>營業堅持時間：</span><b id="finalTime" class="text-yellow-400">10:00</b></div>
+        <div class="flex justify-between"><span>滿足離場顧客：</span><b id="finalFed" class="text-emerald-400">0 人</b></div>
+        <div class="flex justify-between"><span>必比登神秘客：</span><b id="finalBossStatus" class="text-cyan-400">成功招待</b></div>
       </div>
 
       <div class="flex gap-2">
-        <button id="btn-show-tutorial" class="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold text-xs sm:text-sm text-cyan-300 transition active:scale-95">
-          📖 經營指南
+        <button id="endHomeBtn" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2 rounded-xl text-xs border border-slate-700">
+          🚪 回主選單
         </button>
-        <button id="btn-start-game" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-400 hover:to-amber-400 font-market text-base sm:text-lg text-slate-950 font-black shadow-lg shadow-rose-500/25 transition active:scale-95">
-          🚀 開始營業！
+        <button id="playAgainBtn" class="flex-1 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 text-slate-950 font-black py-2 rounded-xl text-xs shadow-md">
+          🔄 再開一局
         </button>
       </div>
-    </div>
-  </div>
-
-  <!-- 經營指南彈窗 -->
-  <div id="modal-guide" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border-2 border-slate-700 rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl max-h-[85dvh] overflow-y-auto">
-      <h2 class="font-market text-xl text-amber-400 mb-3 flex items-center gap-2">
-        <span>📖 夜市老闆 10 分鐘經營手冊</span>
-      </h2>
-      <div class="text-xs text-slate-300 space-y-3">
-        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-          <b class="text-cyan-300">⏰ 10 分鐘時間軸節奏</b>：
-          <ul class="list-disc pl-4 mt-1 text-slate-400 space-y-0.5">
-            <li><b>00:00 - 02:00</b>：傍晚開市，前30秒完全和平，低頭族慢步前進（80 HP）。</li>
-            <li><b>02:00 - 04:00</b>：下課人潮，快走大媽團湧現（180 HP）！</li>
-            <li><b>04:00 - 06:00</b>：黃金尖峰，機車外送員（300 HP）與挑剔評論家登場。</li>
-            <li><b>06:00 - 08:00</b>：評審暗訪，必比登神秘客出動（1650 HP）！</li>
-            <li><b>08:00 - 10:00</b>：深夜狂潮，各路客流全開衝刺至 24:00 打烊！</li>
-          </ul>
-        </div>
-        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-          <b class="text-emerald-300">🍵 換班喘息機制</b>：每 2 分鐘觸發 3 秒換班整備期，暫停出怪並發放 NT$ 50 清潔獎金！
-        </div>
-        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-          <b class="text-amber-300">🍽️ 5 個餐盤評分標準</b>：
-          <p class="text-slate-400 mt-1">
-            結算評定考量：通關時間、剩餘商譽愛心、餵飽顧客總數、總營收以及是否成功餵飽神秘客。滿分 5.0 個餐盤，可能獲得半個餐盤評定！
-          </p>
-        </div>
-      </div>
-      <button id="btn-close-guide" class="w-full mt-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition">
-        我知道了，返回夜市
-      </button>
-    </div>
-  </div>
-
-  <!-- 版本紀錄與作者資訊彈窗 -->
-  <div id="modal-changelog" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border-2 border-slate-700 rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl max-h-[85dvh] overflow-y-auto">
-      <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
-        <h2 class="font-market text-xl text-amber-400 flex items-center gap-2">
-          <span>📜 版本紀錄與作者資訊</span>
-        </h2>
-        <button id="btn-close-changelog-x" class="text-slate-400 hover:text-white text-base">✕</button>
-      </div>
-
-      <!-- 作者與開發資訊 -->
-      <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 mb-4 text-xs space-y-1">
-        <div class="font-bold text-amber-300 flex items-center gap-1.5">
-          <i class="fa-solid fa-code text-cyan-400"></i> 開發團隊資訊
-        </div>
-        <p class="text-slate-300"><b>遊戲企劃與監製：</b> 881and886</p>
-        <p class="text-slate-300"><b>技術開發：</b> Gemini 3 Flash / Web Game Engine</p>
-        <p class="text-slate-300"><b>技術棧：</b> HTML5 Canvas, Tailwind CSS, Web Audio API</p>
-      </div>
-
-      <!-- 更新日誌 -->
-      <div class="space-y-3 text-xs text-slate-300">
-        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-          <div class="flex justify-between items-center mb-1">
-            <b class="text-emerald-400 font-mono-num">v1.3.0</b>
-            <span class="text-[10px] text-slate-500">2026 最新版</span>
-          </div>
-          <ul class="list-disc pl-4 text-slate-400 space-y-0.5">
-            <li>新增<b>「5個餐盤評分系統」</b>，支援半個餐盤評定（例如 3.5 🍽️、4.5 🍽️）。</li>
-            <li>更名為《必比登夜市保衛戰》，主選單加入招商廣告版位。</li>
-            <li>暫停選單新增「回到主選單」選項。</li>
-            <li>非初級敵人血量提升 50%，換班喘息時間縮短至 3 秒，芒果刨冰 CD 縮短至 9 秒。</li>
-          </ul>
-        </div>
-
-        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-          <div class="flex justify-between items-center mb-1">
-            <b class="text-cyan-400 font-mono-num">v1.2.0</b>
-            <span class="text-[10px] text-slate-500">歷史版本</span>
-          </div>
-          <ul class="list-disc pl-4 text-slate-400 space-y-0.5">
-            <li>修正 Canvas Y 軸座標偏差，點擊落點精準對齊。</li>
-            <li>升級滑鼠硬幣磁吸機制與懸停網格指示。</li>
-          </ul>
-        </div>
-      </div>
-
-      <button id="btn-close-changelog" class="w-full mt-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition">
-        關閉版本紀錄
-      </button>
-    </div>
-  </div>
-
-  <!-- 10 分鐘打烊通關結算彈窗 (含 5 個餐盤評分系統) -->
-  <div id="modal-victory" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border-4 border-amber-500 rounded-3xl p-6 sm:p-7 max-w-sm sm:max-w-md w-full text-center shadow-2xl">
-      <div class="text-4xl sm:text-5xl mb-1">🏮 🍽️ 🏆</div>
-      <h2 class="font-market text-2xl sm:text-3xl text-amber-300 mb-0.5">24:00 打烊收攤！</h2>
-      <p class="text-xs text-slate-400 mb-3">夜市 10 分鐘營運大盤點</p>
-      
-      <!-- 餐盤評分核心展示區 -->
-      <div class="bg-slate-950/90 border-2 border-amber-500/60 rounded-2xl p-4 mb-4 shadow-inner">
-        <div class="text-[11px] font-bold text-slate-400 mb-1 tracking-wider uppercase">米其林必比登官方評定</div>
-        
-        <!-- 金色餐盤圖標列 (支援半個) -->
-        <div id="victory-plates-container" class="flex items-center justify-center gap-1.5 text-2xl my-1.5 min-h-[36px]">
-          <!-- 動態注入餐盤 -->
-        </div>
-
-        <div class="flex items-center justify-center gap-2 mt-1">
-          <span id="victory-plates-number" class="text-2xl font-black font-mono-num text-amber-300">4.5</span>
-          <span class="text-xs font-bold text-amber-400/80">/ 5.0 個餐盤</span>
-        </div>
-
-        <p id="victory-plates-comment" class="text-xs font-black text-rose-400 mt-2 tracking-wide">
-          ★ 驚豔味蕾・三星潛力名攤 ★
-        </p>
-      </div>
-
-      <div class="bg-slate-950 p-3 rounded-2xl text-left text-xs text-slate-300 font-mono mb-5 space-y-1.5 border border-slate-800">
-        <div class="flex justify-between">
-          <span class="text-slate-400">營運總時間：</span>
-          <span class="text-cyan-400 font-bold">10 分鐘 (滿載打烊)</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-slate-400">餵飽顧客總數：</span>
-          <span id="win-fed-count" class="text-amber-400 font-bold">0 位</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-slate-400">夜市營收總計：</span>
-          <span id="win-coin-count" class="text-emerald-400 font-bold">NT$ 0</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-slate-400">剩餘商譽商標：</span>
-          <span id="win-lives-count" class="text-rose-400 font-bold">❤️ 3 / 3</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-slate-400">神秘客考核：</span>
-          <span id="win-michelin-status" class="text-amber-300 font-bold">成功通過</span>
-        </div>
-      </div>
-
-      <button id="btn-replay-win" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 text-slate-950 font-market text-base font-black shadow-lg shadow-amber-500/25 transition active:scale-95">
-        明天再開一場夜市盛會！
-      </button>
-    </div>
-  </div>
-
-  <!-- 失敗彈窗 (亦給予餐盤評語) -->
-  <div id="modal-defeat" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border-4 border-rose-600 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl">
-      <div class="text-4xl mb-2">🤦‍♂️ 💢 🍽️</div>
-      <h2 class="font-market text-2xl sm:text-3xl text-rose-400 mb-1">夜市防線失守！</h2>
-      <p class="text-xs text-slate-400 mb-3">多位客人餓著肚子走出夜市，提早收攤打烊...</p>
-      
-      <!-- 失敗時的餐盤評定 (通常 1.0 ~ 2.5) -->
-      <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3 mb-4 text-center">
-        <div id="defeat-plates-container" class="flex items-center justify-center gap-1 text-xl mb-1"></div>
-        <div class="text-xs font-mono-num font-bold text-amber-300">評分：<span id="defeat-plates-number">1.5</span> 🍽️</div>
-        <div id="defeat-plates-comment" class="text-xs font-bold text-slate-400 mt-1">差強人意・仍需磨練廚藝</div>
-      </div>
-
-      <div class="bg-slate-950 p-2.5 rounded-xl text-left text-xs text-slate-300 font-mono mb-5 space-y-1 border border-slate-800">
-        <div>堅持營業時間：<span id="lose-survive-time" class="text-amber-400 font-bold">0分0秒</span></div>
-        <div>餵飽顧客人數：<span id="lose-fed-count" class="text-emerald-400 font-bold">0 位</span></div>
-      </div>
-      <button id="btn-replay-lose" class="w-full py-3 rounded-xl bg-gradient-to-r from-rose-600 to-amber-600 text-slate-950 font-market text-base font-black transition active:scale-95">
-        重整旗鼓，再次挑戰
-      </button>
     </div>
   </div>
 
   <script>
-    // Web Audio 音效模組
-    const AudioEngine = {
-      ctx: null,
-      muted: false,
-      init() {
-        if (!this.ctx) {
-          const AudioContext = window.AudioContext || window.webkitAudioContext;
-          this.ctx = new AudioContext();
+    /* ================= 行動裝置直向/橫向偵測 ================= */
+    const rotateOverlay = document.getElementById('rotateOverlay');
+
+    function checkOrientation() {
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (window.innerWidth < 900 && 'ontouchstart' in window);
+      const isPortrait = window.innerHeight > window.innerWidth;
+
+      if (isMobile && isPortrait) {
+        rotateOverlay.classList.remove('hidden');
+        rotateOverlay.classList.add('flex');
+        if (isRunning && !isPaused) {
+          isPaused = true; // 直向自動靜止
         }
-        if (this.ctx.state === 'suspended') {
-          this.ctx.resume();
-        }
-      },
-      playCoin() {
-        if (this.muted) return;
-        this.init();
-        const t = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(980, t);
-        osc.frequency.setValueAtTime(1320, t + 0.06);
-        gain.gain.setValueAtTime(0.12, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(t);
-        osc.stop(t + 0.25);
-      },
-      playShoot() {
-        if (this.muted) return;
-        this.init();
-        const t = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(420, t);
-        osc.frequency.exponentialRampToValueAtTime(180, t + 0.1);
-        gain.gain.setValueAtTime(0.1, t);
-        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(t);
-        osc.stop(t + 0.1);
-      },
-      playEat() {
-        if (this.muted) return;
-        this.init();
-        const t = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(220, t);
-        osc.frequency.exponentialRampToValueAtTime(130, t + 0.08);
-        gain.gain.setValueAtTime(0.08, t);
-        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(t);
-        osc.stop(t + 0.08);
-      },
-      playFreeze() {
-        if (this.muted) return;
-        this.init();
-        const t = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(750, t);
-        osc.frequency.exponentialRampToValueAtTime(140, t + 0.35);
-        gain.gain.setValueAtTime(0.2, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(t);
-        osc.stop(t + 0.4);
-      },
-      playShutter() {
-        if (this.muted) return;
-        this.init();
-        const t = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(1200, t);
-        osc.frequency.setValueAtTime(400, t + 0.04);
-        gain.gain.setValueAtTime(0.2, t);
-        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.14);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(t);
-        osc.stop(t + 0.14);
-      },
-      playChime() {
-        if (this.muted) return;
-        this.init();
-        [659.25, 830.61, 987.77].forEach((freq, idx) => {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          const t = this.ctx.currentTime + idx * 0.12;
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, t);
-          gain.gain.setValueAtTime(0.16, t);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start(t);
-          osc.stop(t + 0.4);
-        });
-      },
-      playClosingBell() {
-        if (this.muted) return;
-        this.init();
-        [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((freq, idx) => {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          const t = this.ctx.currentTime + idx * 0.12;
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(freq, t);
-          gain.gain.setValueAtTime(0.2, t);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start(t);
-          osc.stop(t + 0.6);
-        });
+      } else {
+        rotateOverlay.classList.add('hidden');
+        rotateOverlay.classList.remove('flex');
       }
-    };
+      resizeCanvasToFit();
+    }
 
-    const CONFIG = {
-      ROWS: 5,
-      COLS: 8,
-      CANVAS_WIDTH: 960,
-      CANVAS_HEIGHT: 540,
-      INITIAL_MONEY: 175,
-      INITIAL_LIVES: 3,
-      TOTAL_DURATION_SEC: 600, // 10 分鐘
-      BREATHER_DURATION_SEC: 3 // 換班喘息縮短為 3 秒
-    };
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 250));
 
-    const STALL_TYPES = {
-      boba: {
-        id: 'boba',
-        name: '珍奶機',
-        icon: '🧋',
-        cost: 45,
-        hp: 200,
-        maxHp: 200,
-        cd: 4,
-        produceInterval: 6500,
-        desc: '【經濟基礎】每 6.5 秒穩定產出 NT$25 硬幣，滑過即磁吸！'
-      },
-      chicken: {
-        id: 'chicken',
-        name: '鹹酥雞炸爐',
-        icon: '🍗',
-        cost: 75,
-        hp: 250,
-        maxHp: 250,
-        cd: 5,
-        attackInterval: 1350,
-        damage: 28,
-        desc: '【核心輸出】投擲香脆鹽酥雞塊餵食同列客人。'
-      },
-      sausage: {
-        id: 'sausage',
-        name: '大腸包小腸',
-        icon: '🌭',
-        cost: 50,
-        hp: 300,
-        maxHp: 300,
-        cd: 8,
-        desc: '【路障阻礙】耐久度 300，抵擋啃咬，受損時外皮破損。'
-      },
-      tofu: {
-        id: 'tofu',
-        name: '臭豆腐油鍋',
-        icon: '🍲',
-        cost: 90,
-        hp: 250,
-        maxHp: 250,
-        cd: 7,
-        pulseCycle: 6000,
-        activeDuration: 2200,
-        damageTick: 14,
-        desc: '【脈衝緩速】週期冒煙 2.2 秒，範圍緩速 35% 並牽制傷害。'
-      },
-      ice: {
-        id: 'ice',
-        name: '芒果刨冰機',
-        icon: '🍧',
-        cost: 100, // 降至 $100
-        hp: 150,
-        maxHp: 150,
-        cd: 9, // 極速 9 秒 CD
-        fuseTime: 400,
-        damage: 260,
-        desc: '【爆發急凍・9秒CD】引爆後凍結整列客人 3.5 秒並重創。'
+    /* ================= 全螢幕切換 ================= */
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+        fullscreenBtn.textContent = '✕';
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        fullscreenBtn.textContent = '⛶';
       }
+    });
+
+    /* ================= 音效引擎 ================= */
+    let audioCtx = null;
+    let isMuted = false;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playTone(freq, type = 'sine', duration = 0.1, vol = 0.2) {
+      if (isMuted || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playCoinSound() {
+      playTone(987.77, 'sine', 0.08, 0.25);
+      setTimeout(() => playTone(1318.51, 'sine', 0.12, 0.3), 60);
+    }
+
+    function playShootSound() { playTone(280, 'triangle', 0.06, 0.15); }
+    function playChompSound() { playTone(180, 'sawtooth', 0.08, 0.18); }
+    function playFreezeSound() {
+      playTone(600, 'sine', 0.15, 0.3);
+      setTimeout(() => playTone(350, 'sine', 0.25, 0.25), 80);
+    }
+    function playBellSound() {
+      playTone(523.25, 'sine', 0.3, 0.3);
+      setTimeout(() => playTone(659.25, 'sine', 0.4, 0.35), 100);
+      setTimeout(() => playTone(783.99, 'sine', 0.5, 0.4), 200);
+    }
+
+    /* ================= 常數與設定 ================= */
+    const ROWS = 5;
+    const COLS = 9;
+    const TOTAL_GAME_SECONDS = 600;
+    const REST_DURATION = 3;
+
+    const UNITS = {
+      boba: { name: '珍奶機', cost: 45, cd: 4, tip: '【珍奶機 - $45】每 6.5 秒產出 $25 銅板。' },
+      chicken: { name: '鹹酥雞', cost: 75, cd: 5, tip: '【鹹酥雞 - $75】直線投擲香脆雞塊餵食客人。' },
+      sausage: { name: '大腸包小腸', cost: 50, cd: 10, tip: '【大腸包小腸 - $50】300 HP 耐久度路障。' },
+      tofu: { name: '臭豆腐', cost: 90, cd: 8, tip: '【臭豆腐 - $90】脈衝香氣減速 35% 並造成餵食傷害。' },
+      ice: { name: '芒果刨冰', cost: 100, cd: 9, tip: '【芒果刨冰 - $100】急凍整行走廊 3.5 秒！' },
+      shovel: { name: '拆除', cost: 0, cd: 0, tip: '【拆除工具】清空指定攤位。' }
     };
 
-    const GameState = {
-      canvas: null,
-      ctx: null,
-      money: CONFIG.INITIAL_MONEY,
-      lives: CONFIG.INITIAL_LIVES,
-      selectedTool: null,
-      grid: [],
-      customers: [],
-      projectiles: [],
-      particles: [],
-      coins: [],
-      cooldowns: { boba: 0, chicken: 0, sausage: 0, tofu: 0, ice: 0 },
-      isOver: false,
-      isStarted: false,
-      isPaused: false,
-      totalFed: 0,
-      totalEarned: CONFIG.INITIAL_MONEY,
-      
-      elapsedTime: 0,
-      lastFrameTime: performance.now(),
-      spawnTimer: 0,
-      
-      isBreather: false,
-      breatherTimer: 0,
-      nextBreatherIndex: 0,
-      breatherMilestones: [120, 240, 360, 480],
-      
-      michelinSummoned: false,
-      michelinFed: false,
-      michelinBuffTimer: 0,
-      
-      mouseX: -100,
-      mouseY: -100,
-      hoverRow: -1,
-      hoverCol: -1
-    };
+    /* ================= 遊戲狀態 ================= */
+    let isRunning = false;
+    let isPaused = false;
+    let money = 175;
+    let lives = 3;
+    let gameTime = 0;
+    let fedCount = 0;
+    let feverTime = 0;
+    let nextRestTime = 120;
+    let isResting = false;
+    let restTimer = 0;
+    let bossServed = false;
 
-    // 顧客類別 (非初級血量提升 +50%)
+    let selectedTool = null;
+    let grid = Array(ROWS).fill(null).map(() => Array(COLS).fill(null));
+    let customers = [];
+    let bullets = [];
+    let coins = [];
+    let particles = [];
+    let cooldowns = { boba: 0, chicken: 0, sausage: 0, tofu: 0, ice: 0 };
+    let spawnTimer = 0;
+
+    let hoverRow = -1;
+    let hoverCol = -1;
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const CELL_W = canvas.width / COLS;
+    const CELL_H = canvas.height / ROWS;
+
+    /* ================= 精準 Canvas 尺寸縮放 ================= */
+    function resizeCanvasToFit() {
+      const container = document.getElementById('canvasContainer');
+      if (!container) return;
+      const maxW = container.clientWidth - 8;
+      const maxH = container.clientHeight - 8;
+      const targetRatio = 960 / 540;
+
+      let w = maxW;
+      let h = w / targetRatio;
+      if (h > maxH) {
+        h = maxH;
+        w = h * targetRatio;
+      }
+      canvas.style.width = `${Math.floor(w)}px`;
+      canvas.style.height = `${Math.floor(h)}px`;
+    }
+
+    function getCanvasCoordinates(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+      };
+    }
+
+    /* ================= UI 綁定 ================= */
+    const moneyDisplay = document.getElementById('moneyDisplay');
+    const healthDisplay = document.getElementById('healthDisplay');
+    const timeElapsed = document.getElementById('timeElapsed');
+    const clockTime = document.getElementById('clockTime');
+    const stageBadge = document.getElementById('stageBadge');
+    const timelineFill = document.getElementById('timelineFill');
+    const restBanner = document.getElementById('restBanner');
+    const tooltipContent = document.getElementById('tooltipContent');
+
+    const startModal = document.getElementById('startModal');
+    const pauseModal = document.getElementById('pauseModal');
+    const guideModal = document.getElementById('guideModal');
+    const changelogModal = document.getElementById('changelogModal');
+    const endModal = document.getElementById('endModal');
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60).toString().padStart(2, '0');
+      const s = Math.floor(sec % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function calculateClock(sec) {
+      const ratio = Math.min(sec / TOTAL_GAME_SECONDS, 1);
+      const totalMinutes = 17 * 60 + ratio * (7 * 60);
+      const h = Math.floor(totalMinutes / 60).toString().padStart(2, '0');
+      const m = Math.floor(totalMinutes % 60).toString().padStart(2, '0');
+      return `${h}:${m}`;
+    }
+
+    function updateStageInfo() {
+      const t = gameTime;
+      let stageText = '';
+      let badgeClass = 'bg-indigo-900/80 text-indigo-200 border-indigo-700';
+
+      if (isResting) {
+        stageText = '☕ 換班整理 (3秒)';
+        badgeClass = 'bg-emerald-800 text-emerald-200 border-emerald-500 animate-pulse';
+      } else if (t < 120) {
+        stageText = '第1階段：傍晚開市';
+        badgeClass = 'bg-blue-900/80 text-blue-200 border-blue-700';
+      } else if (t < 240) {
+        stageText = '第2階段：下課人潮';
+        badgeClass = 'bg-emerald-900/80 text-emerald-200 border-emerald-700';
+      } else if (t < 360) {
+        stageText = '第3階段：黃金尖峰';
+        badgeClass = 'bg-amber-900/80 text-amber-200 border-amber-700';
+      } else if (t < 480) {
+        stageText = '第4階段：評審暗訪';
+        badgeClass = 'bg-purple-900/80 text-purple-200 border-purple-700';
+      } else {
+        stageText = '第5階段：深夜狂潮';
+        badgeClass = 'bg-rose-900/80 text-rose-200 border-rose-700';
+      }
+
+      stageBadge.textContent = stageText;
+      stageBadge.className = `text-[9px] md:text-[10px] px-1.5 py-0.2 rounded-full font-bold border ${badgeClass}`;
+    }
+
+    /* ================= 顧客類別 (加強血量 +50%) ================= */
     class Customer {
       constructor(type, row) {
-        this.row = row;
-        this.x = CONFIG.CANVAS_WIDTH + 30;
-        this.y = (row + 0.5) * (CONFIG.CANVAS_HEIGHT / CONFIG.ROWS);
         this.type = type;
-        this.frozenTimer = 0;
+        this.row = row;
+        this.x = canvas.width + 10;
+        this.y = row * CELL_H + CELL_H / 2;
+        this.fed = false;
+        this.eatCooldown = 0;
+        this.freezeTimer = 0;
         this.slowTimer = 0;
-        this.biteTimer = 0;
-        this.walkCycle = Math.random() * 10;
-        this.isSatisfied = false;
-        this.chewAnim = 0;
 
-        if (type === 'student') {
-          this.name = '低頭族大學生';
-          this.maxHp = 80; // 初級維持 80
-          this.speed = 0.44;
-          this.dps = 15;
-        } else if (type === 'auntie') {
-          this.name = '導遊衝鋒大媽';
-          this.maxHp = 180; // 原 120 -> 180 (+50%)
-          this.speed = 0.78;
-          this.dps = 24;
-        } else if (type === 'delivery') {
-          this.name = '外送員小哥';
-          this.maxHp = 260; // 原 175 -> 260 (+50%)
-          this.speed = 0.95;
-          this.dps = 28;
-        } else if (type === 'critic') {
-          this.name = '挑剔美食評論家';
-          this.maxHp = 350; // 原 230 -> 350 (+50%)
-          this.speed = 0.42;
-          this.dps = 32;
-        } else if (type === 'michelin') {
-          this.name = '必比登神秘客';
-          this.maxHp = 840; // 原 560 -> 840 (+50%)
-          this.speed = 0.36;
-          this.dps = 22;
-          this.isBoss = true;
+        switch (type) {
+          case 'student':
+            this.name = '低頭大學生';
+            this.maxHp = 80;
+            this.speed = 0.55;
+            this.color = '#38bdf8';
+            break;
+          case 'auntie':
+            this.name = '快走大媽團';
+            this.maxHp = 180;
+            this.speed = 0.95;
+            this.color = '#ec4899';
+            break;
+          case 'delivery':
+            this.name = '外送員小哥';
+            this.maxHp = 300;
+            this.speed = 1.35;
+            this.color = '#10b981';
+            break;
+          case 'critic':
+            this.name = '挑剔評論家';
+            this.maxHp = 480;
+            this.speed = 0.50;
+            this.color = '#a855f7';
+            break;
+          case 'michelin':
+            this.name = '👑 必比登神秘客';
+            this.maxHp = 1650;
+            this.speed = 0.45;
+            this.color = '#eab308';
+            break;
         }
-
         this.hp = this.maxHp;
       }
 
       update(dt) {
-        if (this.isSatisfied) {
-          this.x += 2.6 * (dt / 16);
-          this.walkCycle += 0.25;
-          return;
-        }
-
-        if (this.frozenTimer > 0) {
-          this.frozenTimer -= dt;
+        if (this.freezeTimer > 0) {
+          this.freezeTimer -= dt;
           return;
         }
 
@@ -797,1171 +633,839 @@
           curSpeed *= 0.65;
         }
 
-        this.walkCycle += 0.08;
-
-        const cellW = CONFIG.CANVAS_WIDTH / CONFIG.COLS;
-        const col = Math.floor((this.x - 25) / cellW);
-        const stall = (col >= 0 && col < CONFIG.COLS) ? GameState.grid[this.row][col] : null;
-
-        if (stall) {
-          this.chewAnim = (this.chewAnim + 0.15) % (Math.PI * 2);
-          this.biteTimer += dt;
-          if (this.biteTimer >= 800) {
-            this.biteTimer = 0;
-            stall.hp -= this.dps;
-            AudioEngine.playEat();
-            createFloatText(stall.x + 30, stall.y + 10, '啃咬！', '#f43f5e');
-            if (stall.hp <= 0) {
-              GameState.grid[this.row][col] = null;
-              createExplosion(stall.x + cellW / 2, stall.y + 50, '#f97316', 10);
-            }
+        const col = Math.floor((this.x - 20) / CELL_W);
+        if (col >= 0 && col < COLS && grid[this.row][col]) {
+          const building = grid[this.row][col];
+          if (this.eatCooldown <= 0) {
+            building.hp -= 20;
+            this.eatCooldown = 0.8;
+            playChompSound();
+            createParticles(this.x - 15, this.y, '#f59e0b', 3);
+            if (building.hp <= 0) grid[this.row][col] = null;
+          } else {
+            this.eatCooldown -= dt;
           }
-        } else {
-          this.chewAnim = 0;
-          this.x -= curSpeed * (dt / 16);
+          return;
+        }
+
+        this.x -= curSpeed * 60 * dt;
+
+        if (this.x < 15) {
+          lives--;
+          healthDisplay.textContent = lives;
+          playTone(150, 'sawtooth', 0.3, 0.4);
+          this.hp = 0;
+          if (lives <= 0) endGame(false);
         }
       }
 
-      draw(ctx) {
+      draw() {
         ctx.save();
         ctx.translate(this.x, this.y);
 
-        const legWobble = Math.sin(this.walkCycle) * 7;
-        const bobble = Math.abs(Math.sin(this.walkCycle)) * 3;
-
-        ctx.beginPath();
-        ctx.ellipse(0, 32, 20, 7, 0, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0,0,0,0.35)';
-        ctx.fill();
-
-        if (this.frozenTimer > 0) {
+        if (this.freezeTimer > 0) {
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 3;
           ctx.beginPath();
-          ctx.arc(0, 0, 34, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(56, 189, 248, 0.35)';
-          ctx.fill();
-        } else if (this.slowTimer > 0) {
-          ctx.beginPath();
-          ctx.arc(0, 0, 30, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(163, 230, 53, 0.25)';
-          ctx.fill();
+          ctx.arc(0, 0, 24, 0, Math.PI * 2);
+          ctx.stroke();
         }
 
-        ctx.strokeStyle = '#1e293b';
-        ctx.lineWidth = 4;
+        ctx.fillStyle = this.color;
         ctx.beginPath();
-        ctx.moveTo(-6, 18);
-        ctx.lineTo(-6 - legWobble, 32);
-        ctx.moveTo(6, 18);
-        ctx.lineTo(6 + legWobble, 32);
-        ctx.stroke();
+        ctx.arc(0, 10, 14, 0, Math.PI, false);
+        ctx.fill();
+
+        ctx.fillStyle = '#fed7aa';
+        ctx.beginPath();
+        ctx.arc(0, -6, 13, 0, Math.PI * 2);
+        ctx.fill();
 
         if (this.type === 'student') {
-          ctx.fillStyle = '#0284c7';
-          ctx.beginPath();
-          ctx.roundRect(-14, 2 - bobble, 28, 20, 6);
-          ctx.fill();
-
-          ctx.fillStyle = '#fbcfe8';
-          ctx.beginPath();
-          ctx.arc(0, -12 - bobble, 14, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.fillStyle = '#0f172a';
-          ctx.beginPath();
-          ctx.arc(0, -16 - bobble, 14, Math.PI, Math.PI * 2);
-          ctx.fill();
-
-          ctx.strokeStyle = '#000';
+          ctx.strokeStyle = '#0f172a';
           ctx.lineWidth = 2;
-          ctx.strokeRect(-9, -15 - bobble, 7, 5);
-          ctx.strokeRect(2, -15 - bobble, 7, 5);
-
-          ctx.fillStyle = '#38bdf8';
-          ctx.fillRect(-12, 10 - bobble, 8, 12);
+          ctx.strokeRect(-9, -8, 6, 4);
+          ctx.strokeRect(3, -8, 6, 4);
+          ctx.fillStyle = '#60a5fa';
+          ctx.fillRect(-14, 2, 8, 12);
         } else if (this.type === 'auntie') {
-          ctx.fillStyle = '#db2777';
-          ctx.beginPath();
-          ctx.roundRect(-15, 2 - bobble, 30, 20, 6);
-          ctx.fill();
-
           ctx.fillStyle = '#78350f';
-          for (let a = 0; a < 6; a++) {
-            ctx.beginPath();
-            ctx.arc(-14 + a * 5.6, -18 - bobble, 7, 0, Math.PI * 2);
-            ctx.fill();
-          }
-
-          ctx.fillStyle = '#fed7aa';
           ctx.beginPath();
-          ctx.arc(0, -10 - bobble, 13, 0, Math.PI * 2);
+          ctx.arc(0, -14, 9, 0, Math.PI * 2);
           ctx.fill();
-
-          ctx.strokeStyle = '#d97706';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(-16, 16);
-          ctx.lineTo(-16, -26 - bobble);
-          ctx.stroke();
           ctx.fillStyle = '#ef4444';
           ctx.beginPath();
-          ctx.moveTo(-16, -26 - bobble);
-          ctx.lineTo(-28, -20 - bobble);
-          ctx.lineTo(-16, -14 - bobble);
+          ctx.moveTo(-16, -15); ctx.lineTo(-24, -20); ctx.lineTo(-16, -25);
           ctx.fill();
         } else if (this.type === 'delivery') {
           ctx.fillStyle = '#059669';
           ctx.beginPath();
-          ctx.roundRect(-14, 2 - bobble, 26, 20, 5);
-          ctx.fill();
-
-          ctx.fillStyle = '#f59e0b';
-          ctx.beginPath();
-          ctx.arc(0, -12 - bobble, 15, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.fillStyle = '#1e293b';
-          ctx.beginPath();
-          ctx.roundRect(-10, -14 - bobble, 14, 8, 3);
+          ctx.arc(0, -10, 14, Math.PI, 0);
           ctx.fill();
         } else if (this.type === 'critic') {
-          ctx.fillStyle = '#334155';
+          ctx.fillStyle = '#1e1b4b';
           ctx.beginPath();
-          ctx.roundRect(-15, 2 - bobble, 30, 20, 5);
+          ctx.arc(0, -15, 12, Math.PI * 1.1, Math.PI * 1.9);
           ctx.fill();
-
-          ctx.fillStyle = '#ffedd5';
+          ctx.strokeStyle = '#e2e8f0';
+          ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.arc(0, -11 - bobble, 13, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.strokeStyle = '#f59e0b';
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          ctx.arc(-16, 4 - bobble, 8, 0, Math.PI * 2);
+          ctx.arc(-12, 0, 5, 0, Math.PI * 2);
           ctx.stroke();
         } else if (this.type === 'michelin') {
-          ctx.beginPath();
-          ctx.arc(0, -10, 36, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(251, 191, 36, 0.2)';
-          ctx.fill();
-
-          ctx.fillStyle = '#d4b996';
-          ctx.beginPath();
-          ctx.roundRect(-18, 0 - bobble, 36, 26, 6);
-          ctx.fill();
-
-          ctx.fillStyle = '#fde68a';
-          ctx.beginPath();
-          ctx.arc(0, -13 - bobble, 15, 0, Math.PI * 2);
-          ctx.fill();
-
           ctx.fillStyle = '#78350f';
-          ctx.beginPath();
-          ctx.ellipse(0, -22 - bobble, 22, 6, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillRect(-12, -32 - bobble, 24, 12);
-
-          ctx.fillStyle = '#fbbf24';
-          ctx.font = '22px sans-serif';
-          ctx.fillText('🍴', -22, 2 - bobble);
+          ctx.fillRect(-15, -18, 30, 4);
+          ctx.fillRect(-10, -28, 20, 10);
+          ctx.fillStyle = '#f59e0b';
+          ctx.fillRect(-18, -2, 4, 16);
         }
 
-        if (this.chewAnim > 0) {
-          ctx.fillStyle = '#f43f5e';
-          ctx.font = '14px sans-serif';
-          ctx.fillText('❤️', 0, -32 - bobble);
-        }
-
-        const barW = this.isBoss ? 52 : 38;
-        const barH = 4;
-        const hpPct = Math.max(0, this.hp / this.maxHp);
+        const barW = 34;
+        const barH = 5;
+        const hpRatio = Math.max(0, this.hp / this.maxHp);
         ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(-barW / 2, -36 - bobble, barW, barH);
-        ctx.fillStyle = this.isBoss ? '#f59e0b' : '#10b981';
-        ctx.fillRect(-barW / 2, -36 - bobble, barW * hpPct, barH);
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(-barW / 2, -36 - bobble, barW, barH);
+        ctx.fillRect(-barW / 2, -28, barW, barH);
+        ctx.fillStyle = hpRatio > 0.4 ? '#10b981' : '#ef4444';
+        ctx.fillRect(-barW / 2, -28, barW * hpRatio, barH);
 
         ctx.restore();
       }
     }
 
-    function createFloatText(x, y, text, color = '#fbbf24') {
-      const container = document.getElementById('float-layer');
-      const el = document.createElement('div');
-      el.className = 'float-text text-xs sm:text-sm';
-      el.style.left = `${(x / CONFIG.CANVAS_WIDTH) * 100}%`;
-      el.style.top = `${(y / CONFIG.CANVAS_HEIGHT) * 100}%`;
-      el.style.color = color;
-      el.textContent = text;
-      container.appendChild(el);
-      setTimeout(() => el.remove(), 850);
-    }
+    /* ================= 攤位物件 ================= */
+    class Building {
+      constructor(type, r, c) {
+        this.type = type;
+        this.r = r;
+        this.c = c;
+        this.x = c * CELL_W + CELL_W / 2;
+        this.y = r * CELL_H + CELL_H / 2;
+        this.timer = 0;
+        this.maxHp = type === 'sausage' ? 300 : 100;
+        this.hp = this.maxHp;
 
-    function createExplosion(x, y, color, count = 12) {
-      for (let i = 0; i < count; i++) {
-        GameState.particles.push({
-          x, y,
-          vx: (Math.random() - 0.5) * 6,
-          vy: (Math.random() - 0.5) * 6,
-          life: 1.0,
-          color,
-          size: Math.random() * 4 + 2
-        });
-      }
-    }
-
-    function setupCanvas() {
-      const canvas = document.getElementById('gameCanvas');
-      GameState.canvas = canvas;
-      GameState.ctx = canvas.getContext('2d');
-
-      GameState.grid = [];
-      for (let r = 0; r < CONFIG.ROWS; r++) {
-        GameState.grid[r] = [];
-        for (let c = 0; c < CONFIG.COLS; c++) {
-          GameState.grid[r][c] = null;
+        if (type === 'boba') {
+          this.shootInterval = 6.5;
+          this.timer = 4.0;
+        } else if (type === 'chicken') {
+          this.shootInterval = 1.35;
+        } else if (type === 'tofu') {
+          this.smokeActive = false;
+          this.pulseTimer = 0;
         }
       }
 
-      canvas.addEventListener('pointerdown', handleCanvasClick);
+      update(dt) {
+        const feverMult = feverTime > 0 ? 1.5 : 1.0;
 
-      canvas.addEventListener('pointermove', (e) => {
-        if (GameState.isPaused) return;
-        const rect = canvas.getBoundingClientRect();
-        GameState.mouseX = (e.clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
-        GameState.mouseY = (e.clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
-        
-        const cellW = CONFIG.CANVAS_WIDTH / CONFIG.COLS;
-        const cellH = CONFIG.CANVAS_HEIGHT / CONFIG.ROWS;
-        GameState.hoverCol = Math.floor(GameState.mouseX / cellW);
-        GameState.hoverRow = Math.floor(GameState.mouseY / cellH);
-
-        checkCoinHoverMagnet();
-      });
-
-      canvas.addEventListener('pointerleave', () => {
-        GameState.hoverRow = -1;
-        GameState.hoverCol = -1;
-      });
-    }
-
-    function checkCoinHoverMagnet() {
-      for (let i = GameState.coins.length - 1; i >= 0; i--) {
-        const coin = GameState.coins[i];
-        const dist = Math.hypot(coin.x - GameState.mouseX, coin.y - GameState.mouseY);
-        if (dist <= 56) {
-          AudioEngine.playCoin();
-          GameState.money += coin.val;
-          GameState.totalEarned += coin.val;
-          updateHUD();
-          createFloatText(coin.x, coin.y, `+NT$ ${coin.val}`, '#facc15');
-          GameState.coins.splice(i, 1);
-        }
-      }
-    }
-
-    function drawGrid(ctx) {
-      const cellW = CONFIG.CANVAS_WIDTH / CONFIG.COLS;
-      const cellH = CONFIG.CANVAS_HEIGHT / CONFIG.ROWS;
-
-      for (let r = 0; r < CONFIG.ROWS; r++) {
-        for (let c = 0; c < CONFIG.COLS; c++) {
-          const x = c * cellW;
-          const y = r * cellH;
-
-          ctx.fillStyle = (r + c) % 2 === 0 ? '#1a1f2c' : '#141824';
-          ctx.fillRect(x, y, cellW, cellH);
-
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
-          ctx.lineWidth = 1;
-          ctx.strokeRect(x, y, cellW, cellH);
-
-          if (c < CONFIG.COLS - 1) {
-            ctx.strokeStyle = 'rgba(245, 158, 11, 0.12)';
-            ctx.setLineDash([3, 4]);
-            ctx.strokeRect(x + 4, y + 4, cellW - 8, cellH - 8);
-            ctx.setLineDash([]);
+        if (this.type === 'boba') {
+          this.timer += dt * feverMult;
+          if (this.timer >= this.shootInterval) {
+            this.timer = 0;
+            coins.push(new Coin(this.x + (Math.random() * 20 - 10), this.y - 15));
+            playTone(880, 'sine', 0.05, 0.15);
           }
-        }
-      }
-
-      // 滑鼠懸停網格指示框
-      if (GameState.hoverRow >= 0 && GameState.hoverRow < CONFIG.ROWS && GameState.hoverCol >= 0 && GameState.hoverCol < CONFIG.COLS - 1) {
-        ctx.fillStyle = GameState.selectedTool === 'shovel' ? 'rgba(244, 63, 94, 0.2)' : 'rgba(56, 189, 248, 0.2)';
-        ctx.fillRect(GameState.hoverCol * cellW, GameState.hoverRow * cellH, cellW, cellH);
-        ctx.strokeStyle = GameState.selectedTool === 'shovel' ? '#f43f5e' : '#38bdf8';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(GameState.hoverCol * cellW, GameState.hoverRow * cellH, cellW, cellH);
-      }
-
-      // 排隊入口
-      const enterX = (CONFIG.COLS - 1) * cellW;
-      ctx.fillStyle = 'rgba(234, 179, 8, 0.12)';
-      ctx.fillRect(enterX, 0, cellW, CONFIG.CANVAS_HEIGHT);
-      ctx.fillStyle = '#eab308';
-      ctx.font = 'bold 11px sans-serif';
-      ctx.textAlign = 'center';
-      for (let r = 0; r < CONFIG.ROWS; r++) {
-        ctx.fillText('排隊動線 ➜', enterX + cellW / 2, (r + 0.5) * cellH);
-      }
-    }
-
-    function updateStalls(dt) {
-      const cellW = CONFIG.CANVAS_WIDTH / CONFIG.COLS;
-      const cellH = CONFIG.CANVAS_HEIGHT / CONFIG.ROWS;
-      const buffMultiplier = GameState.michelinBuffTimer > 0 ? 1.5 : 1.0;
-
-      for (let r = 0; r < CONFIG.ROWS; r++) {
-        for (let c = 0; c < CONFIG.COLS; c++) {
-          const stall = GameState.grid[r][c];
-          if (!stall) continue;
-
-          stall.x = c * cellW;
-          stall.y = r * cellH;
-
-          if (stall.type === 'boba') {
-            stall.timer = (stall.timer || 0) + dt * buffMultiplier;
-            if (stall.timer >= STALL_TYPES.boba.produceInterval) {
-              stall.timer = 0;
-              spawnCoin(stall.x + cellW / 2, stall.y + cellH / 2);
-            }
+        } else if (this.type === 'chicken') {
+          this.timer += dt * feverMult;
+          const hasEnemy = customers.some(e => e.row === this.r && e.x > this.x && e.hp > 0);
+          if (hasEnemy && this.timer >= this.shootInterval) {
+            this.timer = 0;
+            bullets.push(new Bullet(this.x + 20, this.y, this.r));
+            playShootSound();
           }
+        } else if (this.type === 'tofu') {
+          this.pulseTimer += dt;
+          if (this.pulseTimer >= 5.5) this.pulseTimer = 0;
+          this.smokeActive = this.pulseTimer < 2.2;
 
-          if (stall.type === 'chicken') {
-            stall.timer = (stall.timer || 0) + dt * buffMultiplier;
-            const hasEnemyInLane = GameState.customers.some(cus => cus.row === r && !cus.isSatisfied && cus.x > stall.x + 35);
-            if (hasEnemyInLane && stall.timer >= STALL_TYPES.chicken.attackInterval) {
-              stall.timer = 0;
-              GameState.projectiles.push({
-                x: stall.x + cellW * 0.7,
-                y: stall.y + cellH * 0.5,
-                row: r,
-                speed: 6.8,
-                damage: STALL_TYPES.chicken.damage
-              });
-              AudioEngine.playShoot();
-            }
-          }
-
-          if (stall.type === 'tofu') {
-            stall.pulseTimer = ((stall.pulseTimer || 0) + dt) % STALL_TYPES.tofu.pulseCycle;
-            stall.isSmoking = stall.pulseTimer < STALL_TYPES.tofu.activeDuration;
-
-            if (stall.isSmoking) {
-              stall.damageTick = (stall.damageTick || 0) + dt;
-              if (stall.damageTick >= 500) {
-                stall.damageTick = 0;
-                createExplosion(stall.x + cellW / 2, stall.y + cellH / 2, '#84cc16', 4);
-                GameState.customers.forEach(cus => {
-                  if (cus.row === r && !cus.isSatisfied && Math.abs(cus.x - (stall.x + cellW / 2)) < cellW * 1.3) {
-                    cus.hp -= STALL_TYPES.tofu.damageTick;
-                    cus.slowTimer = 1600;
-                    createFloatText(cus.x, cus.y - 12, '好香!', '#a3e635');
-                    if (cus.hp <= 0) handleCustomerSatisfied(cus);
-                  }
-                });
+          if (this.smokeActive) {
+            customers.forEach(e => {
+              if (e.row === this.r && Math.abs(e.x - this.x) < CELL_W * 1.4) {
+                e.slowTimer = 1.0;
+                e.hp -= 22 * dt;
+                if (Math.random() < 0.1) createParticles(e.x, e.y, '#84cc16', 1);
               }
-            }
-          }
-
-          if (stall.type === 'ice') {
-            stall.fuse = (stall.fuse || 0) + dt;
-            if (stall.fuse >= STALL_TYPES.ice.fuseTime) {
-              AudioEngine.playFreeze();
-              createExplosion(stall.x + cellW / 2, stall.y + cellH / 2, '#38bdf8', 22);
-              GameState.customers.forEach(cus => {
-                if (cus.row === r && !cus.isSatisfied) {
-                  cus.hp -= STALL_TYPES.ice.damage;
-                  cus.frozenTimer = 3500;
-                  createFloatText(cus.x, cus.y - 18, '透心涼！', '#38bdf8');
-                  if (cus.hp <= 0) handleCustomerSatisfied(cus);
-                }
-              });
-              GameState.grid[r][c] = null;
-            }
+            });
           }
         }
       }
-    }
 
-    function drawStalls(ctx) {
-      const cellW = CONFIG.CANVAS_WIDTH / CONFIG.COLS;
-      const cellH = CONFIG.CANVAS_HEIGHT / CONFIG.ROWS;
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
 
-      for (let r = 0; r < CONFIG.ROWS; r++) {
-        for (let c = 0; c < CONFIG.COLS; c++) {
-          const stall = GameState.grid[r][c];
-          if (!stall) continue;
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.beginPath();
+        ctx.ellipse(0, 22, 24, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
 
-          const cx = c * cellW + cellW / 2;
-          const cy = r * cellH + cellH / 2;
-
-          ctx.beginPath();
-          ctx.ellipse(cx, cy + 22, 26, 9, 0, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(0,0,0,0.45)';
-          ctx.fill();
-
-          if (stall.type === 'tofu' && stall.isSmoking) {
-            ctx.beginPath();
-            ctx.arc(cx, cy, 34, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(132, 204, 22, 0.25)';
-            ctx.fill();
-          }
-
-          ctx.font = '36px sans-serif';
+        if (this.type === 'boba') {
+          ctx.font = '32px sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(stall.icon, cx, cy - 2);
-
-          if (stall.type === 'sausage') {
-            const hpRatio = Math.max(0, stall.hp / STALL_TYPES.sausage.hp);
-            if (hpRatio < 0.6) {
-              ctx.strokeStyle = '#ef4444';
-              ctx.lineWidth = 2;
-              ctx.beginPath();
-              ctx.moveTo(cx - 10, cy - 10);
-              ctx.lineTo(cx + 10, cy + 10);
-              ctx.stroke();
-            }
+          ctx.fillText('🧋', 0, 0);
+        } else if (this.type === 'chicken') {
+          ctx.font = '32px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('🍗', 0, 0);
+        } else if (this.type === 'sausage') {
+          ctx.font = '34px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('🌭', 0, 0);
+          if (this.hp < 150) {
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-10, -5); ctx.lineTo(10, 5);
+            ctx.stroke();
+          }
+        } else if (this.type === 'tofu') {
+          ctx.font = '32px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('🍲', 0, 0);
+          if (this.smokeActive) {
+            ctx.fillStyle = 'rgba(132, 204, 22, 0.25)';
+            ctx.beginPath();
+            ctx.arc(0, 0, 42, 0, Math.PI * 2);
+            ctx.fill();
           }
         }
+
+        ctx.restore();
       }
     }
 
-    function updateProjectiles(dt) {
-      for (let i = GameState.projectiles.length - 1; i >= 0; i--) {
-        const p = GameState.projectiles[i];
-        p.x += p.speed * (dt / 16);
-
-        let hit = false;
-        for (let j = 0; j < GameState.customers.length; j++) {
-          const cus = GameState.customers[j];
-          if (cus.row === p.row && !cus.isSatisfied && Math.abs(cus.x - p.x) < 26) {
-            hit = true;
-            cus.hp -= p.damage;
-            AudioEngine.playEat();
-            createFloatText(cus.x, cus.y - 12, '好吃!', '#f59e0b');
-            createExplosion(p.x, p.y, '#eab308', 4);
-
-            if (cus.hp <= 0) {
-              handleCustomerSatisfied(cus);
-            }
+    /* ================= 飛行鹽酥雞 ================= */
+    class Bullet {
+      constructor(x, y, row) {
+        this.x = x;
+        this.y = y;
+        this.row = row;
+        this.speed = 340;
+        this.hit = false;
+      }
+      update(dt) {
+        this.x += this.speed * dt;
+        for (const c of customers) {
+          if (c.row === this.row && c.hp > 0 && Math.abs(c.x - this.x) < 22) {
+            c.hp -= 35;
+            this.hit = true;
+            createParticles(this.x, this.y, '#f59e0b', 4);
+            playTone(400, 'triangle', 0.04, 0.1);
             break;
           }
         }
-
-        if (hit || p.x > CONFIG.CANVAS_WIDTH + 40) {
-          GameState.projectiles.splice(i, 1);
-        }
       }
-    }
-
-    function drawProjectiles(ctx) {
-      GameState.projectiles.forEach(p => {
+      draw() {
         ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.font = '18px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('🍗', 0, 0);
+        ctx.translate(this.x, this.y);
+        ctx.fillStyle = '#b45309';
+        ctx.beginPath();
+        ctx.arc(0, 0, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fde68a';
+        ctx.beginPath();
+        ctx.arc(-2, -2, 2.5, 0, Math.PI * 2);
+        ctx.fill();
         ctx.restore();
-      });
-    }
-
-    function handleCustomerSatisfied(customer) {
-      customer.isSatisfied = true;
-      GameState.totalFed++;
-
-      createExplosion(customer.x, customer.y, '#34d399', 14);
-      createFloatText(customer.x, customer.y - 28, '大滿足~ ⭐ +$5小費', '#10b981');
-
-      GameState.money += 5;
-      GameState.totalEarned += 5;
-      updateHUD();
-
-      if (customer.isBoss) {
-        GameState.michelinFed = true;
-        triggerMichelinBlessing();
-      } else {
-        spawnCoin(customer.x, customer.y);
       }
     }
 
-    function triggerMichelinInspectorEncounter() {
-      if (GameState.michelinSummoned) return;
-      GameState.michelinSummoned = true;
-      AudioEngine.playShutter();
-      const flash = document.getElementById('flash-layer');
-      flash.className = 'absolute inset-0 bg-white pointer-events-none z-40 rounded-xl flash-overlay';
-      setTimeout(() => {
-        flash.className = 'absolute inset-0 bg-white pointer-events-none opacity-0 z-40 rounded-xl';
-      }, 500);
-
-      const banner = document.getElementById('michelin-banner');
-      banner.classList.remove('hidden');
-      setTimeout(() => banner.classList.add('hidden'), 3200);
-
-      setTimeout(() => {
-        GameState.customers.push(new Customer('michelin', 2));
-      }, 1000);
-    }
-
-    function triggerMichelinBlessing() {
-      AudioEngine.playClosingBell();
-      GameState.michelinBuffTimer = 20000;
-      createFloatText(CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2, '★ 榮獲必比登推薦！全場攻速 +50% ★', '#fbbf24');
-
-      for (let i = 0; i < 8; i++) {
-        setTimeout(() => {
-          spawnCoin(CONFIG.CANVAS_WIDTH * 0.2 + Math.random() * CONFIG.CANVAS_WIDTH * 0.6, 120 + Math.random() * 260);
-        }, i * 160);
+    /* ================= 掉落銅板 ================= */
+    class Coin {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.life = 14;
+        this.picked = false;
+        this.val = 25;
       }
-    }
-
-    function spawnCoin(x, y) {
-      GameState.coins.push({
-        x: Math.max(30, Math.min(CONFIG.CANVAS_WIDTH - 50, x)),
-        y: Math.max(30, Math.min(CONFIG.CANVAS_HEIGHT - 50, y)),
-        vy: -3.0,
-        bounce: 0,
-        val: 25,
-        life: 16000
-      });
-    }
-
-    function updateCoins(dt) {
-      for (let i = GameState.coins.length - 1; i >= 0; i--) {
-        const coin = GameState.coins[i];
-        coin.life -= dt;
-        if (coin.life <= 0) {
-          GameState.coins.splice(i, 1);
-          continue;
-        }
-
-        if (coin.bounce < 2) {
-          coin.y += coin.vy;
-          coin.vy += 0.22;
-          if (coin.vy > 2.2) {
-            coin.bounce++;
-            coin.vy = -1.5;
-          }
-        }
-      }
-    }
-
-    function drawCoins(ctx) {
-      GameState.coins.forEach(coin => {
+      update(dt) { this.life -= dt; }
+      draw() {
         ctx.save();
-        ctx.translate(coin.x, coin.y);
+        ctx.translate(this.x, this.y);
+        ctx.fillStyle = '#f59e0b';
         ctx.beginPath();
         ctx.arc(0, 0, 14, 0, Math.PI * 2);
-        ctx.fillStyle = '#f59e0b';
         ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#fef08a';
-        ctx.stroke();
-
-        ctx.fillStyle = '#78350f';
-        ctx.font = 'bold 12px sans-serif';
+        ctx.fillStyle = '#fde68a';
+        ctx.beginPath();
+        ctx.arc(0, 0, 11, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#b45309';
+        ctx.font = 'bold 10px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('$', 0, 1);
+        ctx.fillText('$', 0, 0);
         ctx.restore();
-      });
-    }
-
-    function updateTimelineAndBreather(dt) {
-      GameState.elapsedTime += dt / 1000;
-      const total = CONFIG.TOTAL_DURATION_SEC;
-      const cur = Math.min(total, GameState.elapsedTime);
-
-      const pct = (cur / total) * 100;
-      document.getElementById('game-progress-bar').style.width = `${pct}%`;
-
-      const mElapsed = Math.floor(cur / 60);
-      const sElapsed = Math.floor(cur % 60);
-      document.getElementById('elapsed-time-display').textContent = 
-        `${String(mElapsed).padStart(2, '0')}:${String(sElapsed).padStart(2, '0')}`;
-
-      const hourOffset = (cur / total) * 7;
-      const clockHours = 17 + Math.floor(hourOffset);
-      const clockMins = Math.floor((hourOffset % 1) * 60);
-      document.getElementById('market-clock-display').textContent = 
-        `${String(clockHours).padStart(2, '0')}:${String(clockMins).padStart(2, '0')}`;
-
-      // 檢查 3 秒喘息時間 (120s, 240s, 360s, 480s)
-      if (GameState.nextBreatherIndex < GameState.breatherMilestones.length) {
-        const nextTarget = GameState.breatherMilestones[GameState.nextBreatherIndex];
-        if (cur >= nextTarget && !GameState.isBreather) {
-          triggerBreather();
-        }
-      }
-
-      if (GameState.isBreather) {
-        GameState.breatherTimer -= dt / 1000;
-        document.getElementById('breather-seconds-left').textContent = `${Math.max(0, Math.ceil(GameState.breatherTimer))}s`;
-
-        updateStageBadge('breather');
-
-        if (GameState.breatherTimer <= 0) {
-          endBreather();
-        }
-        return;
-      }
-
-      updateProgressiveSpawns(dt, cur);
-
-      if (cur >= total && !GameState.isOver) {
-        triggerVictory();
       }
     }
 
-    function updateStageBadge(stageKey) {
-      const badge = document.getElementById('current-stage-badge');
-      if (stageKey === 'breather') {
-        badge.className = 'px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black bg-emerald-950 text-emerald-300 border border-emerald-500/60 animate-pulse';
-        badge.textContent = '🍵 換班整理中 (3秒)';
-      } else if (stageKey === 1) {
-        badge.className = 'px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black bg-cyan-950 text-cyan-300 border border-cyan-500/50';
-        badge.textContent = '第1階段：傍晚開市';
-      } else if (stageKey === 2) {
-        badge.className = 'px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black bg-teal-950 text-teal-300 border border-teal-500/50';
-        badge.textContent = '第2階段：下課人潮';
-      } else if (stageKey === 3) {
-        badge.className = 'px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black bg-amber-950 text-amber-300 border border-amber-500/60';
-        badge.textContent = '第3階段：黃金尖峰';
-      } else if (stageKey === 4) {
-        badge.className = 'px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black bg-purple-950 text-purple-300 border border-purple-500/60';
-        badge.textContent = '第4階段：評審暗訪';
-      } else if (stageKey === 5) {
-        badge.className = 'px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black bg-rose-950 text-rose-300 border border-rose-500/60';
-        badge.textContent = '第5階段：深夜狂潮';
+    /* ================= 粒子特效 ================= */
+    class Particle {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.vx = (Math.random() - 0.5) * 120;
+        this.vy = (Math.random() - 0.5) * 120;
+        this.life = 0.45;
+      }
+      update(dt) {
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        this.life -= dt;
+      }
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
 
-    function triggerBreather() {
-      GameState.isBreather = true;
-      GameState.breatherTimer = CONFIG.BREATHER_DURATION_SEC; // 3 秒
-      GameState.nextBreatherIndex++;
-
-      AudioEngine.playChime();
-      const banner = document.getElementById('breather-banner');
-      banner.classList.remove('hidden');
-
-      GameState.money += 50; // 發放 NT$ 50 清潔獎金
-      GameState.totalEarned += 50;
-      updateHUD();
-      createFloatText(CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 40, '✨ 清潔獎金 +NT$ 50！', '#34d399');
+    function createParticles(x, y, color, count = 5) {
+      for (let i = 0; i < count; i++) particles.push(new Particle(x, y, color));
     }
 
-    function endBreather() {
-      GameState.isBreather = false;
-      document.getElementById('breather-banner').classList.add('hidden');
-    }
+    /* ================= 出怪管理器 ================= */
+    function handleSpawning(dt) {
+      if (isResting) return;
+      spawnTimer += dt;
 
-    function updateProgressiveSpawns(dt, curSec) {
-      GameState.spawnTimer += dt;
-      let interval = 7500;
+      const t = gameTime;
+      let interval = 6.0;
       let pool = ['student'];
 
-      if (curSec < 120) {
-        updateStageBadge(1);
-        interval = 6000;
+      if (t < 30) {
+        return;
+      } else if (t < 120) {
+        interval = 5.5;
         pool = ['student'];
-      } else if (curSec < 240) {
-        updateStageBadge(2);
-        interval = 4000;
+      } else if (t < 240) {
+        interval = 3.8;
         pool = ['student', 'auntie'];
-      } else if (curSec < 360) {
-        updateStageBadge(3);
-        interval = 3200;
-        pool = ['student', 'auntie', 'delivery', 'critic'];
-      } else if (curSec < 480) {
-        updateStageBadge(4);
-        interval = 2800;
+      } else if (t < 360) {
+        interval = 3.0;
+        pool = ['student', 'auntie', 'delivery'];
+      } else if (t < 480) {
+        interval = 2.6;
         pool = ['auntie', 'delivery', 'critic'];
-
-        if (curSec >= 420 && !GameState.michelinSummoned) {
-          triggerMichelinInspectorEncounter();
+        if (Math.abs(t - 420) < 0.5 && !customers.some(c => c.type === 'michelin')) {
+          customers.push(new Customer('michelin', 2));
+          playBellSound();
         }
       } else {
-        updateStageBadge(5);
-        interval = 2000;
+        interval = 2.0;
         pool = ['student', 'auntie', 'delivery', 'critic'];
       }
 
-      if (curSec < 30) return; // 前 30 秒和平期
-
-      if (GameState.spawnTimer >= interval) {
-        GameState.spawnTimer = 0;
-        const randomRow = Math.floor(Math.random() * CONFIG.ROWS);
-        const cusType = pool[Math.floor(Math.random() * pool.length)];
-        GameState.customers.push(new Customer(cusType, randomRow));
+      if (spawnTimer >= interval) {
+        spawnTimer = 0;
+        const type = pool[Math.floor(Math.random() * pool.length)];
+        const row = Math.floor(Math.random() * ROWS);
+        customers.push(new Customer(type, row));
       }
     }
 
-    function updateCustomers(dt) {
-      for (let i = GameState.customers.length - 1; i >= 0; i--) {
-        const cus = GameState.customers[i];
-        cus.update(dt);
+    /* ================= 換班喘息處理 (3秒) ================= */
+    function checkRestPeriod(dt) {
+      if (!isResting && gameTime >= nextRestTime && nextRestTime < TOTAL_GAME_SECONDS) {
+        isResting = true;
+        restTimer = REST_DURATION;
+        restBanner.classList.remove('hidden');
+        money += 50;
+        moneyDisplay.textContent = `NT$ ${money}`;
+        playBellSound();
+        nextRestTime += 120;
+      }
 
-        if (cus.isSatisfied && cus.x > CONFIG.CANVAS_WIDTH + 60) {
-          GameState.customers.splice(i, 1);
-          continue;
+      if (isResting) {
+        restTimer -= dt;
+        if (restTimer <= 0) {
+          isResting = false;
+          restBanner.classList.add('hidden');
+        }
+      }
+    }
+
+    /* ================= 遊戲主循環 ================= */
+    let lastTimestamp = performance.now();
+
+    function gameLoop(currentTimestamp) {
+      const dt = Math.min((currentTimestamp - lastTimestamp) / 1000, 0.1);
+      lastTimestamp = currentTimestamp;
+
+      if (isRunning && !isPaused) {
+        gameTime += dt;
+        if (feverTime > 0) feverTime -= dt;
+
+        timeElapsed.textContent = formatTime(gameTime);
+        clockTime.textContent = calculateClock(gameTime);
+        timelineFill.style.width = `${Math.min((gameTime / TOTAL_GAME_SECONDS) * 100, 100)}%`;
+        updateStageInfo();
+
+        checkRestPeriod(dt);
+        handleSpawning(dt);
+
+        for (const k in cooldowns) {
+          if (cooldowns[k] > 0) {
+            cooldowns[k] -= dt;
+            const mask = document.getElementById(`cd-${k}`);
+            if (mask) {
+              if (cooldowns[k] <= 0) {
+                mask.classList.add('hidden');
+              } else {
+                mask.classList.remove('hidden');
+                mask.textContent = `${Math.ceil(cooldowns[k])}s`;
+              }
+            }
+          }
         }
 
-        if (!cus.isSatisfied && cus.x < -15) {
-          GameState.customers.splice(i, 1);
-          GameState.lives -= 1;
-          document.getElementById('lives-display').textContent = GameState.lives;
-          createFloatText(60, cus.y, '奧客留負評走出！-1 命', '#ef4444');
-          AudioEngine.playEat();
+        for (let r = 0; r < ROWS; r++) {
+          for (let c = 0; c < COLS; c++) {
+            if (grid[r][c]) grid[r][c].update(dt);
+          }
+        }
 
-          if (GameState.lives <= 0) {
-            triggerGameOver();
-            return;
+        bullets.forEach(b => b.update(dt));
+        bullets = bullets.filter(b => !b.hit && b.x < canvas.width);
+
+        customers.forEach(c => c.update(dt));
+        customers.forEach(c => {
+          if (c.hp <= 0 && c.x >= 15) {
+            fedCount++;
+            money += 2;
+            moneyDisplay.textContent = `NT$ ${money}`;
+            createParticles(c.x, c.y, '#fbbf24', 6);
+            if (c.type === 'michelin') {
+              bossServed = true;
+              feverTime = 15;
+              playBellSound();
+            }
+          }
+        });
+        customers = customers.filter(c => c.hp > 0);
+
+        coins.forEach(c => c.update(dt));
+        coins = coins.filter(c => c.life > 0 && !c.picked);
+        particles.forEach(p => p.update(dt));
+        particles = particles.filter(p => p.life > 0);
+
+        if (gameTime >= TOTAL_GAME_SECONDS) endGame(true);
+      }
+
+      render();
+      requestAnimationFrame(gameLoop);
+    }
+
+    /* ================= 畫面渲染 ================= */
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          ctx.fillStyle = (r + c) % 2 === 0 ? '#1e293b' : '#0f172a';
+          ctx.fillRect(c * CELL_W, r * CELL_H, CELL_W, CELL_H);
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+          ctx.strokeRect(c * CELL_W, r * CELL_H, CELL_W, CELL_H);
+        }
+      }
+
+      // 排隊區
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.08)';
+      ctx.fillRect((COLS - 1) * CELL_W, 0, CELL_W, canvas.height);
+      for (let r = 0; r < ROWS; r++) {
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.4)';
+        ctx.font = '10px sans-serif';
+        ctx.fillText('排隊動線 ➔', (COLS - 0.85) * CELL_W, r * CELL_H + CELL_H / 2);
+      }
+
+      // 懸停對齊框
+      if (hoverRow >= 0 && hoverRow < ROWS && hoverCol >= 0 && hoverCol < COLS - 1) {
+        ctx.fillStyle = selectedTool === 'shovel' ? 'rgba(244, 63, 94, 0.2)' : 'rgba(56, 189, 248, 0.2)';
+        ctx.fillRect(hoverCol * CELL_W, hoverRow * CELL_H, CELL_W, CELL_H);
+        ctx.strokeStyle = selectedTool === 'shovel' ? '#f43f5e' : '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(hoverCol * CELL_W, hoverRow * CELL_H, CELL_W, CELL_H);
+      }
+
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (grid[r][c]) grid[r][c].draw();
+        }
+      }
+
+      customers.forEach(c => c.draw());
+      bullets.forEach(b => b.draw());
+      coins.forEach(c => c.draw());
+      particles.forEach(p => p.draw());
+
+      if (feverTime > 0) {
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.7)';
+        ctx.lineWidth = 6;
+        ctx.strokeRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    /* ================= 互動處理 (滑鼠與觸控統一) ================= */
+    function handleBoardAction(clientX, clientY) {
+      initAudio();
+      if (!isRunning || isPaused) return;
+
+      const pos = getCanvasCoordinates(clientX, clientY);
+
+      // 優先吸取/拾取銅板
+      for (const coin of coins) {
+        if (!coin.picked && Math.hypot(coin.x - pos.x, coin.y - pos.y) < 36) {
+          coin.picked = true;
+          money += coin.val;
+          moneyDisplay.textContent = `NT$ ${money}`;
+          playCoinSound();
+          return;
+        }
+      }
+
+      const col = Math.floor(pos.x / CELL_W);
+      const row = Math.floor(pos.y / CELL_H);
+      if (row < 0 || row >= ROWS || col < 0 || col >= COLS - 1) return;
+
+      if (selectedTool === 'shovel') {
+        if (grid[row][col]) {
+          grid[row][col] = null;
+          playTone(200, 'sine', 0.1, 0.2);
+        }
+      } else if (selectedTool) {
+        const u = UNITS[selectedTool];
+        if (selectedTool === 'ice') {
+          if (money >= u.cost && cooldowns.ice <= 0) {
+            money -= u.cost;
+            cooldowns.ice = u.cd;
+            moneyDisplay.textContent = `NT$ ${money}`;
+            playFreezeSound();
+            createParticles(pos.x, pos.y, '#38bdf8', 25);
+            customers.forEach(c => {
+              if (c.row === row) {
+                c.freezeTimer = 3.5;
+                c.hp -= 40;
+              }
+            });
+          }
+        } else {
+          if (!grid[row][col] && money >= u.cost && cooldowns[selectedTool] <= 0) {
+            money -= u.cost;
+            cooldowns[selectedTool] = u.cd;
+            moneyDisplay.textContent = `NT$ ${money}`;
+            grid[row][col] = new Building(selectedTool, row, col);
+            playTone(440, 'triangle', 0.1, 0.2);
           }
         }
       }
     }
 
-    /* ================= 米其林餐盤評分演算法 (最高 5.0，支援半個) ================= */
-    function calculateMichelinPlateRating(isWin) {
-      let score = 0;
+    function handleHoverMove(clientX, clientY) {
+      const pos = getCanvasCoordinates(clientX, clientY);
+      hoverCol = Math.floor(pos.x / CELL_W);
+      hoverRow = Math.floor(pos.y / CELL_H);
 
-      if (isWin) {
-        // 通關基礎分 2.5
-        score += 2.5;
-
-        // 1. 剩餘愛心加權 (滿心 3 點加 1.0，剩 2 點加 0.5)
-        if (GameState.lives === 3) score += 1.0;
-        else if (GameState.lives === 2) score += 0.5;
-
-        // 2. 餵飽顧客人數加權
-        if (GameState.totalFed >= 80) score += 1.0;
-        else if (GameState.totalFed >= 50) score += 0.5;
-
-        // 3. 必比登神秘客招待成功
-        if (GameState.michelinFed) score += 0.5;
-
-        // 4. 營運收益指標
-        if (GameState.totalEarned >= 800) score += 0.5;
-      } else {
-        // 失敗時依堅持時間與餵飽人數給分 (1.0 ~ 2.5)
-        const timeRatio = GameState.elapsedTime / CONFIG.TOTAL_DURATION_SEC;
-        score = 1.0 + Math.min(1.5, Math.floor(timeRatio * 3) * 0.5);
-      }
-
-      // 限制最高 5.0，最低 1.0，並四捨五入至最近的 0.5 單位
-      score = Math.min(5.0, Math.max(1.0, score));
-      score = Math.round(score * 2) / 2;
-
-      // 評定官方評語
-      let comment = '';
-      if (score >= 5.0) {
-        comment = '★ 5.0 卓越非凡・米其林必比登至尊夜市王 ★';
-      } else if (score >= 4.5) {
-        comment = '★ 4.5 驚豔味蕾・三星潛力排隊名店 ★';
-      } else if (score >= 4.0) {
-        comment = '★ 4.0 風味絕佳・深受在地饕客盛讚 ★';
-      } else if (score >= 3.5) {
-        comment = '★ 3.5 表現亮眼・人氣鼎盛排隊小吃街 ★';
-      } else if (score >= 3.0) {
-        comment = '★ 3.0 穩健經營・極具口碑特色名攤 ★';
-      } else if (score >= 2.5) {
-        comment = '★ 2.5 差強人意・出餐節奏仍需磨練 ★';
-      } else {
-        comment = '★ 2.0 勉力維持・有待重整旗鼓再來 ★';
-      }
-
-      return { score, comment };
+      // 自動磁吸收集
+      coins.forEach(coin => {
+        if (!coin.picked && Math.hypot(coin.x - pos.x, coin.y - pos.y) < 56) {
+          coin.picked = true;
+          money += coin.val;
+          moneyDisplay.textContent = `NT$ ${money}`;
+          playCoinSound();
+        }
+      });
     }
 
-    // 渲染餐盤圖標 (支援半個 🍽️ 切割)
-    function renderPlateIcons(containerEl, rating) {
-      containerEl.innerHTML = '';
-      const fullPlates = Math.floor(rating);
-      const hasHalf = (rating % 1) !== 0;
+    // 滑鼠事件
+    canvas.addEventListener('click', (e) => handleBoardAction(e.clientX, e.clientY));
+    canvas.addEventListener('mousemove', (e) => handleHoverMove(e.clientX, e.clientY));
+    canvas.addEventListener('mouseleave', () => { hoverRow = -1; hoverCol = -1; });
 
-      for (let i = 0; i < 5; i++) {
-        if (i < fullPlates) {
-          // 完整金色餐盤
-          const span = document.createElement('span');
-          span.className = 'text-amber-400 drop-shadow-[0_0_6px_rgba(245,158,11,0.8)]';
-          span.innerHTML = '🍽️';
-          containerEl.appendChild(span);
-        } else if (i === fullPlates && hasHalf) {
-          // 半個餐盤
-          const wrapper = document.createElement('span');
-          wrapper.className = 'plate-half-wrapper';
-          wrapper.innerHTML = `
-            <span class="plate-half-bg">🍽️</span>
-            <span class="plate-half-fill">🍽️</span>
-          `;
-          containerEl.appendChild(wrapper);
+    // 觸控事件 (支援手機)
+    canvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length > 0) {
+        const t = e.touches[0];
+        handleHoverMove(t.clientX, t.clientY);
+        handleBoardAction(t.clientX, t.clientY);
+      }
+      e.preventDefault();
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+      if (e.touches.length > 0) {
+        const t = e.touches[0];
+        handleHoverMove(t.clientX, t.clientY);
+      }
+      e.preventDefault();
+    }, { passive: false });
+
+    /* ================= 攤位卡片選擇 ================= */
+    document.querySelectorAll('.card-slot').forEach(slot => {
+      const type = slot.dataset.type;
+
+      slot.addEventListener('click', () => {
+        initAudio();
+        document.querySelectorAll('.card-slot').forEach(s => s.classList.remove('selected'));
+        if (selectedTool === type) {
+          selectedTool = null;
         } else {
-          // 空餐盤 (灰色暗淡)
-          const span = document.createElement('span');
-          span.className = 'text-slate-600 opacity-30 grayscale';
-          span.innerHTML = '🍽️';
-          containerEl.appendChild(span);
+          selectedTool = type;
+          slot.classList.add('selected');
         }
-      }
-    }
+        tooltipContent.textContent = UNITS[type]?.tip || '點擊放置於夜市紅磚道。';
+      });
 
-    function triggerGameOver() {
-      GameState.isOver = true;
-      const m = Math.floor(GameState.elapsedTime / 60);
-      const s = Math.floor(GameState.elapsedTime % 60);
-      document.getElementById('lose-survive-time').textContent = `${m} 分 ${s} 秒`;
-      document.getElementById('lose-fed-count').textContent = `${GameState.totalFed} 位`;
+      slot.addEventListener('mouseenter', () => {
+        tooltipContent.textContent = UNITS[type]?.tip || '功能說明';
+      });
+    });
 
-      const result = calculateMichelinPlateRating(false);
-      document.getElementById('defeat-plates-number').textContent = result.score.toFixed(1);
-      document.getElementById('defeat-plates-comment').textContent = result.comment;
-      renderPlateIcons(document.getElementById('defeat-plates-container'), result.score);
-
-      document.getElementById('modal-defeat').classList.remove('hidden');
-    }
-
-    function triggerVictory() {
-      GameState.isOver = true;
-      AudioEngine.playClosingBell();
-
-      document.getElementById('win-fed-count').textContent = `${GameState.totalFed} 位`;
-      document.getElementById('win-coin-count').textContent = `NT$ ${GameState.totalEarned}`;
-      document.getElementById('win-lives-count').textContent = `❤️ ${GameState.lives} / 3`;
-      document.getElementById('win-michelin-status').textContent = GameState.michelinFed ? '⭐ 順利招待滿意' : (GameState.michelinSummoned ? '未能及時餵飽' : '未到訪');
-
-      const result = calculateMichelinPlateRating(true);
-      document.getElementById('victory-plates-number').textContent = result.score.toFixed(1);
-      document.getElementById('victory-plates-comment').textContent = result.comment;
-      renderPlateIcons(document.getElementById('victory-plates-container'), result.score);
-
-      document.getElementById('modal-victory').classList.remove('hidden');
-    }
-
-    function handleCanvasClick(e) {
-      if (GameState.isPaused || !GameState.isStarted || GameState.isOver) return;
-      AudioEngine.init();
-      const rect = GameState.canvas.getBoundingClientRect();
-      const clickX = (e.clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
-      const clickY = (e.clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
-
-      const cellW = CONFIG.CANVAS_WIDTH / CONFIG.COLS;
-      const cellH = CONFIG.CANVAS_HEIGHT / CONFIG.ROWS;
-      const col = Math.floor(clickX / cellW);
-      const row = Math.floor(clickY / cellH);
-
-      if (row < 0 || row >= CONFIG.ROWS || col < 0 || col >= CONFIG.COLS - 1) return;
-
-      if (GameState.selectedTool === 'shovel') {
-        if (GameState.grid[row][col]) {
-          createExplosion(col * cellW + cellW / 2, row * cellH + cellH / 2, '#94a3b8', 10);
-          GameState.grid[row][col] = null;
-          GameState.selectedTool = null;
-          updateSelectedToolUI();
-        }
-        return;
-      }
-
-      if (GameState.selectedTool && STALL_TYPES[GameState.selectedTool]) {
-        const typeInfo = STALL_TYPES[GameState.selectedTool];
-
-        if (GameState.grid[row][col] !== null) {
-          createFloatText(clickX, clickY, '此處已有攤位！', '#f43f5e');
-          return;
-        }
-
-        if (GameState.money < typeInfo.cost) {
-          createFloatText(clickX, clickY, '夜市經費不足！', '#f43f5e');
-          return;
-        }
-
-        GameState.money -= typeInfo.cost;
-        updateHUD();
-
-        GameState.grid[row][col] = {
-          type: typeInfo.id,
-          icon: typeInfo.icon,
-          hp: typeInfo.hp,
-          maxHp: typeInfo.maxHp,
-          timer: 0
-        };
-
-        createExplosion(col * cellW + cellW / 2, row * cellH + cellH / 2, '#f59e0b', 8);
-        AudioEngine.playShoot();
-
-        startCooldown(typeInfo.id, typeInfo.cd);
-        GameState.selectedTool = null;
-        updateSelectedToolUI();
-      }
-    }
-
-    function startCooldown(stallId, seconds) {
-      GameState.cooldowns[stallId] = seconds;
-      const btn = document.querySelector(`.stall-btn[data-type="${stallId}"]`);
-      const cdEl = btn.querySelector('.stall-cd');
-      cdEl.classList.remove('hidden');
-
-      const interval = setInterval(() => {
-        if (GameState.isPaused) return;
-        GameState.cooldowns[stallId] -= 1;
-        if (GameState.cooldowns[stallId] <= 0) {
-          clearInterval(interval);
-          cdEl.classList.add('hidden');
-          btn.disabled = false;
-        } else {
-          cdEl.textContent = `${GameState.cooldowns[stallId]}s`;
-        }
-      }, 1000);
-      cdEl.textContent = `${seconds}s`;
-    }
+    /* ================= 暫停選單邏輯 (四功能) ================= */
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
+    const pauseGuideBtn = document.getElementById('pauseGuideBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const returnHomeBtn = document.getElementById('returnHomeBtn');
 
     function togglePause() {
-      if (!GameState.isStarted || GameState.isOver) return;
-      GameState.isPaused = !GameState.isPaused;
-      const pauseModal = document.getElementById('modal-pause');
-      const pauseBtn = document.getElementById('btn-pause-toggle');
-
-      if (GameState.isPaused) {
+      if (!isRunning) return;
+      isPaused = !isPaused;
+      if (isPaused) {
         pauseModal.classList.remove('hidden');
-        pauseBtn.innerHTML = '<i class="fa-solid fa-play"></i><span class="hidden sm:inline">繼續</span>';
+        pauseModal.classList.add('flex');
       } else {
         pauseModal.classList.add('hidden');
-        pauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i><span class="hidden sm:inline">暫停</span>';
-        GameState.lastFrameTime = performance.now();
+        pauseModal.classList.remove('flex');
+        lastTimestamp = performance.now();
       }
     }
 
-    function setupUI() {
-      const tipBox = document.getElementById('stall-tip-text');
+    pauseBtn.addEventListener('click', togglePause);
+    resumeBtn.addEventListener('click', togglePause);
 
-      document.querySelectorAll('.stall-btn').forEach(btn => {
-        const type = btn.dataset.type;
-        const info = STALL_TYPES[type];
+    pauseGuideBtn.addEventListener('click', () => {
+      guideModal.classList.remove('hidden');
+      guideModal.classList.add('flex');
+    });
 
-        btn.addEventListener('mouseenter', () => {
-          tipBox.textContent = `【${info.name} - $${info.cost}】${info.desc}`;
-        });
+    restartBtn.addEventListener('click', () => {
+      pauseModal.classList.add('hidden');
+      pauseModal.classList.remove('flex');
+      resetGame();
+    });
 
-        btn.addEventListener('click', () => {
-          AudioEngine.init();
-          GameState.selectedTool = GameState.selectedTool === type ? null : type;
-          updateSelectedToolUI();
-          tipBox.textContent = `【${info.name} - $${info.cost}】${info.desc}`;
-        });
-      });
+    // 回到主選單
+    returnHomeBtn.addEventListener('click', () => {
+      pauseModal.classList.add('hidden');
+      pauseModal.classList.remove('flex');
+      isRunning = false;
+      isPaused = false;
+      startModal.classList.remove('hidden');
+      startModal.classList.add('flex');
+    });
 
-      const shovelBtn = document.getElementById('btn-shovel');
-      shovelBtn.addEventListener('mouseenter', () => {
-        tipBox.textContent = '【拆除收攤】點選已放置的攤位進行拆除清空。';
-      });
-      shovelBtn.addEventListener('click', () => {
-        AudioEngine.init();
-        GameState.selectedTool = GameState.selectedTool === 'shovel' ? null : 'shovel';
-        updateSelectedToolUI();
-        tipBox.textContent = '【拆除收攤】請點選要收攤的格子。';
-      });
-
-      // 暫停鍵與四大選項
-      document.getElementById('btn-pause-toggle').addEventListener('click', togglePause);
-      document.getElementById('btn-pause-resume').addEventListener('click', togglePause);
-
-      document.getElementById('btn-pause-guide').addEventListener('click', () => {
-        document.getElementById('modal-guide').classList.remove('hidden');
-      });
-
-      document.getElementById('btn-pause-restart').addEventListener('click', () => {
-        document.getElementById('modal-pause').classList.add('hidden');
-        GameState.isPaused = false;
-        document.getElementById('btn-pause-toggle').innerHTML = '<i class="fa-solid fa-pause"></i><span class="hidden sm:inline">暫停</span>';
-        resetGame();
-      });
-
-      // 暫停選單：回到主選單
-      document.getElementById('btn-pause-home').addEventListener('click', () => {
-        document.getElementById('modal-pause').classList.add('hidden');
-        GameState.isPaused = false;
-        GameState.isStarted = false;
-        document.getElementById('btn-pause-toggle').innerHTML = '<i class="fa-solid fa-pause"></i><span class="hidden sm:inline">暫停</span>';
-        resetGame();
-        document.getElementById('modal-start').classList.remove('hidden');
-      });
-
-      // 版本紀錄彈窗
-      const clModal = document.getElementById('modal-changelog');
-      document.getElementById('btn-open-changelog').addEventListener('click', () => {
-        clModal.classList.remove('hidden');
-      });
-      document.getElementById('btn-close-changelog').addEventListener('click', () => {
-        clModal.classList.add('hidden');
-      });
-      document.getElementById('btn-close-changelog-x').addEventListener('click', () => {
-        clModal.classList.add('hidden');
-      });
-
-      window.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' || e.code === 'Escape') {
-          if (GameState.isStarted && !GameState.isOver) {
-            e.preventDefault();
-            togglePause();
-          }
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.code === 'Escape') {
+        if (isRunning && !startModal.classList.contains('flex')) {
+          togglePause();
         }
-      });
+      }
+    });
 
-      document.getElementById('btn-start-game').addEventListener('click', () => {
-        AudioEngine.init();
-        document.getElementById('modal-start').classList.add('hidden');
-        GameState.isStarted = true;
-        GameState.lastFrameTime = performance.now();
-      });
+    /* ================= 說明與版本紀錄彈窗控制 ================= */
+    const showGuideBtn = document.getElementById('showGuideBtn');
+    const closeGuideBtn = document.getElementById('closeGuideBtn');
+    const closeGuideBtn2 = document.getElementById('closeGuideBtn2');
+    const showChangelogBtn = document.getElementById('showChangelogBtn');
+    const closeChangelogBtn = document.getElementById('closeChangelogBtn');
+    const closeChangelogBtn2 = document.getElementById('closeChangelogBtn2');
 
-      document.getElementById('btn-show-tutorial').addEventListener('click', () => {
-        document.getElementById('modal-guide').classList.remove('hidden');
-      });
+    showGuideBtn.addEventListener('click', () => {
+      guideModal.classList.remove('hidden');
+      guideModal.classList.add('flex');
+    });
+    const hideGuide = () => {
+      guideModal.classList.add('hidden');
+      guideModal.classList.remove('flex');
+    };
+    closeGuideBtn.addEventListener('click', hideGuide);
+    closeGuideBtn2.addEventListener('click', hideGuide);
 
-      document.getElementById('btn-close-guide').addEventListener('click', () => {
-        document.getElementById('modal-guide').classList.add('hidden');
-      });
+    showChangelogBtn.addEventListener('click', () => {
+      changelogModal.classList.remove('hidden');
+      changelogModal.classList.add('flex');
+    });
+    const hideChangelog = () => {
+      changelogModal.classList.add('hidden');
+      changelogModal.classList.remove('flex');
+    };
+    closeChangelogBtn.addEventListener('click', hideChangelog);
+    closeChangelogBtn2.addEventListener('click', hideChangelog);
 
-      document.getElementById('btn-replay-win').addEventListener('click', resetGame);
-      document.getElementById('btn-replay-lose').addEventListener('click', resetGame);
+    /* ================= 結算評分系統 (5 個餐盤，含 0.5 半盤) ================= */
+    function renderPlates(score) {
+      const platesDisplay = document.getElementById('platesDisplay');
+      platesDisplay.innerHTML = '';
 
-      const soundBtn = document.getElementById('btn-sound');
-      soundBtn.addEventListener('click', () => {
-        AudioEngine.muted = !AudioEngine.muted;
-        soundBtn.innerHTML = AudioEngine.muted ?
-          '<i class="fa-solid fa-volume-xmark text-slate-500"></i>' :
-          '<i class="fa-solid fa-volume-high text-amber-400"></i>';
-      });
+      const fullCount = Math.floor(score);
+      const hasHalf = (score % 1) >= 0.5;
+
+      for (let i = 0; i < 5; i++) {
+        if (i < fullCount) {
+          const span = document.createElement('span');
+          span.textContent = '🍽️';
+          span.className = 'text-xl drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]';
+          platesDisplay.appendChild(span);
+        } else if (i === fullCount && hasHalf) {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'half-plate-container';
+          wrapper.innerHTML = `
+            <div class="half-plate-back">🍽️</div>
+            <div class="half-plate-front">🍽️</div>
+          `;
+          platesDisplay.appendChild(wrapper);
+        } else {
+          const span = document.createElement('span');
+          span.textContent = '🍽️';
+          span.className = 'text-xl opacity-20 grayscale';
+          platesDisplay.appendChild(span);
+        }
+      }
     }
 
-    function updateSelectedToolUI() {
-      document.querySelectorAll('.stall-btn').forEach(btn => {
-        if (btn.dataset.type === GameState.selectedTool) {
-          btn.classList.add('border-amber-400', 'bg-slate-700', 'scale-105');
-        } else {
-          btn.classList.remove('border-amber-400', 'bg-slate-700', 'scale-105');
-        }
-      });
+    function endGame(victory) {
+      isRunning = false;
+      endModal.classList.remove('hidden');
+      endModal.classList.add('flex');
 
-      const shovelBtn = document.getElementById('btn-shovel');
-      if (GameState.selectedTool === 'shovel') {
-        shovelBtn.classList.add('border-rose-400', 'bg-slate-700', 'scale-105');
+      const endIcon = document.getElementById('endIcon');
+      const endTitle = document.getElementById('endTitle');
+      const endSubtitle = document.getElementById('endSubtitle');
+      const finalTime = document.getElementById('finalTime');
+      const finalFed = document.getElementById('finalFed');
+      const finalBossStatus = document.getElementById('finalBossStatus');
+      const scoreNumber = document.getElementById('scoreNumber');
+      const michelinVerdict = document.getElementById('michelinVerdict');
+
+      finalTime.textContent = formatTime(gameTime);
+      finalFed.textContent = `${fedCount} 人`;
+      finalBossStatus.textContent = bossServed ? '成功招待 (+0.5🍽️)' : '未完整招待';
+
+      // 綜合評分演算法 (最高 5.0 分，最小單位 0.5)
+      let score = 0;
+      if (victory) {
+        score = 3.0; // 通關底分 3.0
+        if (lives === 3) score += 0.5; // 滿心保護
+        if (bossServed) score += 0.5;  // 餵飽米其林
+        if (fedCount >= 80) score += 1.0;
+        else if (fedCount >= 50) score += 0.5;
       } else {
-        shovelBtn.classList.remove('border-rose-400', 'bg-slate-700', 'scale-105');
+        // 失敗依時間比例計分
+        const ratio = gameTime / TOTAL_GAME_SECONDS;
+        if (ratio >= 0.7) score = 2.5;
+        else if (ratio >= 0.4) score = 2.0;
+        else score = 1.5;
+      }
+
+      score = Math.min(5.0, Math.max(1.0, score));
+      scoreNumber.textContent = score.toFixed(1);
+      renderPlates(score);
+
+      if (score >= 5.0) {
+        endIcon.textContent = '🏆';
+        endTitle.textContent = '米其林必比登至尊夜市王！';
+        endSubtitle.textContent = '完美無瑕的十全十美經營典範！';
+        michelinVerdict.textContent = '至尊卓越・國際評審一致推崇';
+        playBellSound();
+      } else if (score >= 4.5) {
+        endIcon.textContent = '🌟';
+        endTitle.textContent = '三星潛力排隊名店！';
+        endSubtitle.textContent = '人潮絡繹不絕，評審給予極高肯定！';
+        michelinVerdict.textContent = '驚豔味蕾・當之無愧的夜市招牌';
+        playBellSound();
+      } else if (score >= 3.5) {
+        endIcon.textContent = '🎉';
+        endTitle.textContent = '人氣排隊名攤街！';
+        endSubtitle.textContent = '順利打烊，小吃深得在地老饕喜愛！';
+        michelinVerdict.textContent = '表現亮眼・值得一再回訪推薦';
+        playBellSound();
+      } else {
+        endIcon.textContent = '🥀';
+        endTitle.textContent = '提早收攤打烊...';
+        endSubtitle.textContent = '出餐節奏失衡，仍有進步空間。';
+        michelinVerdict.textContent = '差強人意・需重新調整攤位陣容';
       }
     }
 
-    function updateHUD() {
-      document.getElementById('money-display').textContent = `NT$ ${GameState.money}`;
-      document.getElementById('lives-display').textContent = GameState.lives;
+    /* ================= 遊戲重置與按鈕綁定 ================= */
+    document.getElementById('realStartBtn').addEventListener('click', () => {
+      initAudio();
+      startModal.classList.add('hidden');
+      resizeCanvasToFit();
+      checkOrientation();
+      resetGame();
+    });
 
-      document.querySelectorAll('.stall-btn').forEach(btn => {
-        const type = btn.dataset.type;
-        const cost = STALL_TYPES[type].cost;
-        if (GameState.money < cost || GameState.cooldowns[type] > 0) {
-          btn.classList.add('opacity-40');
-        } else {
-          btn.classList.remove('opacity-40');
-        }
-      });
-    }
+    document.getElementById('playAgainBtn').addEventListener('click', () => {
+      endModal.classList.add('hidden');
+      endModal.classList.remove('flex');
+      resetGame();
+    });
+
+    document.getElementById('endHomeBtn').addEventListener('click', () => {
+      endModal.classList.add('hidden');
+      endModal.classList.remove('flex');
+      isRunning = false;
+      startModal.classList.remove('hidden');
+      startModal.classList.add('flex');
+    });
+
+    document.getElementById('muteBtn').addEventListener('click', () => {
+      isMuted = !isMuted;
+      document.getElementById('muteBtn').textContent = isMuted ? '🔇' : '🔊';
+    });
 
     function resetGame() {
-      document.getElementById('modal-victory').classList.add('hidden');
-      document.getElementById('modal-defeat').classList.add('hidden');
-      document.getElementById('breather-banner').classList.add('hidden');
-      document.getElementById('modal-pause').classList.add('hidden');
+      isRunning = true;
+      isPaused = false;
+      money = 175;
+      lives = 3;
+      gameTime = 0;
+      fedCount = 0;
+      feverTime = 0;
+      nextRestTime = 120;
+      isResting = false;
+      restTimer = 0;
+      bossServed = false;
+      spawnTimer = 0;
 
-      GameState.money = CONFIG.INITIAL_MONEY;
-      GameState.lives = CONFIG.INITIAL_LIVES;
-      GameState.selectedTool = null;
-      GameState.customers = [];
-      GameState.projectiles = [];
-      GameState.particles = [];
-      GameState.coins = [];
-      GameState.isOver = false;
-      GameState.isPaused = false;
-      GameState.totalFed = 0;
-      GameState.totalEarned = CONFIG.INITIAL_MONEY;
+      grid = Array(ROWS).fill(null).map(() => Array(COLS).fill(null));
+      customers = [];
+      bullets = [];
+      coins = [];
+      particles = [];
+      cooldowns = { boba: 0, chicken: 0, sausage: 0, tofu: 0, ice: 0 };
 
-      GameState.elapsedTime = 0;
-      GameState.spawnTimer = 0;
-      GameState.isBreather = false;
-      GameState.breatherTimer = 0;
-      GameState.nextBreatherIndex = 0;
-      GameState.michelinSummoned = false;
-      GameState.michelinFed = false;
-      GameState.michelinBuffTimer = 0;
-      GameState.lastFrameTime = performance.now();
+      moneyDisplay.textContent = `NT$ ${money}`;
+      healthDisplay.textContent = lives;
+      timeElapsed.textContent = '00:00';
+      clockTime.textContent = '17:00';
+      timelineFill.style.width = '0%';
+      restBanner.classList.add('hidden');
 
-      for (let r = 0; r < CONFIG.ROWS; r++) {
-        for (let c = 0; c < CONFIG.COLS; c++) {
-          GameState.grid[r][c] = null;
-        }
-      }
-
-      updateHUD();
-      updateSelectedToolUI();
-      updateStageBadge(1);
+      lastTimestamp = performance.now();
     }
 
-    function gameLoop(now) {
-      const dt = Math.min(64, now - GameState.lastFrameTime);
-      GameState.lastFrameTime = now;
-
-      if (GameState.isStarted && !GameState.isOver && !GameState.isPaused) {
-        if (GameState.michelinBuffTimer > 0) {
-          GameState.michelinBuffTimer -= dt;
-        }
-
-        updateStalls(dt);
-        updateProjectiles(dt);
-        updateCustomers(dt);
-        updateTimelineAndBreather(dt);
-        updateCoins(dt);
-
-        for (let i = GameState.particles.length - 1; i >= 0; i--) {
-          const p = GameState.particles[i];
-          p.x += p.vx;
-          p.y += p.vy;
-          p.life -= dt / 600;
-          if (p.life <= 0) GameState.particles.splice(i, 1);
-        }
-      }
-
-      const ctx = GameState.ctx;
-      ctx.clearRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
-
-      drawGrid(ctx);
-      drawStalls(ctx);
-      drawProjectiles(ctx);
-
-      GameState.particles.forEach(p => {
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = Math.max(0, p.life);
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
-      });
-
-      GameState.customers.forEach(cus => cus.draw(ctx));
-      drawCoins(ctx);
-
-      requestAnimationFrame(gameLoop);
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      setupCanvas();
-      setupUI();
-      updateHUD();
-      requestAnimationFrame(gameLoop);
-    });
+    // 啟動主循環與初次適配檢查
+    checkOrientation();
+    requestAnimationFrame(gameLoop);
   </script>
 </body>
 </html>
