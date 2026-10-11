@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>夜市攤位大作戰：必比登傳奇</title>
+  <title>夜市攤位大作戰：逢甲夜市保衛戰</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@600;800;900&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@600;800;900&family=ZCOOL+KuaiLe&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
 
   <style>
     * {
@@ -21,14 +21,17 @@
       margin: 0;
       padding: 0;
       overflow: hidden;
-      background-color: #080c14;
+      background-color: #070a12;
       font-family: 'Noto Sans TC', sans-serif;
     }
     .font-market {
       font-family: 'ZCOOL KuaiLe', 'Noto Sans TC', cursive, sans-serif;
     }
+    .font-mono-num {
+      font-family: 'JetBrains Mono', monospace;
+    }
 
-    /* 台灣夜市霓虹招牌光暈 */
+    /* 台灣夜市霓虹光暈 */
     @keyframes neon-glow {
       0%, 100% { text-shadow: 0 0 6px #f43f5e, 0 0 16px #e11d48; }
       50% { text-shadow: 0 0 3px #f43f5e, 0 0 8px #be123c; }
@@ -37,9 +40,18 @@
       animation: neon-glow 2.4s infinite alternate;
     }
 
+    /* 儀表板呼吸光暈 */
+    @keyframes dashboard-pulse {
+      0%, 100% { border-color: rgba(245, 158, 11, 0.45); box-shadow: 0 0 12px rgba(245, 158, 11, 0.15); }
+      50% { border-color: rgba(245, 158, 11, 0.85); box-shadow: 0 0 20px rgba(245, 158, 11, 0.35); }
+    }
+    .dashboard-glow {
+      animation: dashboard-pulse 3s infinite ease-in-out;
+    }
+
     /* 必比登閃光燈動畫 */
     @keyframes camera-flash {
-      0% { opacity: 0.9; }
+      0% { opacity: 0.95; }
       100% { opacity: 0; }
     }
     .flash-overlay {
@@ -49,7 +61,7 @@
     /* 浮動飄字 */
     @keyframes float-up {
       0% { transform: translate(-50%, 0) scale(0.85); opacity: 1; }
-      100% { transform: translate(-50%, -28px) scale(1.05); opacity: 0; }
+      100% { transform: translate(-50%, -32px) scale(1.1); opacity: 0; }
     }
     .float-text {
       position: absolute;
@@ -57,10 +69,10 @@
       font-weight: 900;
       animation: float-up 0.85s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
       z-index: 50;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.85);
     }
 
-    /* 自適應畫布外框 (保持 16:9 且不捲動) */
+    /* 自適應 16:9 畫布容器 */
     .canvas-container {
       position: relative;
       width: 100%;
@@ -80,114 +92,131 @@
 </head>
 <body class="flex flex-col text-slate-100 justify-between">
 
-  <!-- 頂部資訊與控制欄 (高密度自適應 HUD，整合 10 分鐘營運時鐘) -->
-  <header class="w-full flex-shrink-0 bg-slate-900/95 border-b border-rose-500/50 px-2 sm:px-4 py-1 flex items-center justify-between z-30 shadow-md">
-    <!-- 左側標題與營業時間顯示 -->
-    <div class="flex items-center gap-2">
-      <div class="flex items-center gap-1">
-        <span class="text-rose-500 text-base sm:text-lg">🏮</span>
-        <h1 class="font-market text-sm sm:text-base text-rose-400 neon-text font-black tracking-wide">
+  <!-- 頂部資訊與控制欄 (高密度 HUD + 醒目中央儀表板) -->
+  <header class="w-full flex-shrink-0 bg-slate-900/95 border-b border-rose-500/40 px-2 sm:px-4 py-1 flex items-center justify-between z-30 shadow-lg">
+    <!-- 左側：夜市 Logo 標題 -->
+    <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+      <span class="text-rose-500 text-lg sm:text-xl">🏮</span>
+      <div>
+        <h1 class="font-market text-sm sm:text-base text-rose-400 neon-text font-black tracking-wide leading-tight">
           逢甲夜市保衛戰
         </h1>
-      </div>
-      <!-- 夜市時鐘 (17:00 -> 24:00) -->
-      <div class="flex items-center gap-1.5 ml-1 sm:ml-2 bg-slate-950/80 px-2 py-0.5 rounded-full border border-slate-800">
-        <i class="fa-regular fa-clock text-cyan-400 text-xs"></i>
-        <span id="market-clock-display" class="font-mono text-xs font-black text-cyan-300">17:00</span>
-        <span id="timeline-stage-tag" class="text-[9px] text-amber-300 font-bold hidden sm:inline">傍晚開市</span>
+        <div class="text-[9px] text-amber-300 font-mono font-bold leading-none hidden sm:block">10分鐘營運大作戰</div>
       </div>
     </div>
 
-    <!-- 中間 10 分鐘進度條與喘息提示 -->
-    <div class="flex items-center gap-2 max-w-[140px] sm:max-w-[220px] w-full">
-      <div class="flex-1 bg-slate-950 h-2 sm:h-2.5 rounded-full overflow-hidden border border-slate-700 relative">
-        <div id="game-progress-bar" class="h-full bg-gradient-to-r from-cyan-500 via-amber-400 to-rose-500 transition-all duration-300 rounded-full" style="width: 0%;"></div>
-        <!-- 4 個喘息節點刻度標記 (2分, 4分, 6分, 8分) -->
-        <div class="absolute top-0 bottom-0 left-[20%] w-0.5 bg-emerald-400/80" title="2分鐘喘息"></div>
-        <div class="absolute top-0 bottom-0 left-[40%] w-0.5 bg-emerald-400/80" title="4分鐘喘息"></div>
-        <div class="absolute top-0 bottom-0 left-[60%] w-0.5 bg-emerald-400/80" title="6分鐘喘息"></div>
-        <div class="absolute top-0 bottom-0 left-[80%] w-0.5 bg-emerald-400/80" title="8分鐘喘息"></div>
+    <!-- 中央：專屬醒目計時器與階段指示儀表板 -->
+    <div class="flex-1 max-w-[280px] sm:max-w-[420px] mx-1 sm:mx-3 bg-slate-950/90 border border-amber-500/60 rounded-xl px-2 py-1 dashboard-glow flex flex-col justify-center">
+      <!-- 上半部：雙時鐘與動態階段標籤 -->
+      <div class="flex items-center justify-between gap-1 text-[10px] sm:text-xs">
+        <!-- 營業已過時間 / 總時間 -->
+        <div class="flex items-center gap-1 font-mono-num font-extrabold text-amber-300">
+          <i class="fa-regular fa-clock text-amber-400 text-[10px]"></i>
+          <span id="elapsed-time-display" class="text-xs sm:text-sm tracking-tight text-yellow-300">00:00</span>
+          <span class="text-slate-500 text-[10px]">/ 10:00</span>
+        </div>
+
+        <!-- 擬真夜市時鐘 (17:00 -> 24:00) -->
+        <div class="flex items-center gap-1 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800 text-[10px] sm:text-xs font-mono-num text-cyan-300 font-bold">
+          <span class="text-[9px] text-slate-400">時鐘</span>
+          <span id="market-clock-display">17:00</span>
+        </div>
+
+        <!-- 當前階段標籤 (動態色彩 Badge) -->
+        <span id="current-stage-badge" class="px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black bg-cyan-950 text-cyan-300 border border-cyan-500/50 truncate max-w-[120px] sm:max-w-none">
+          第1階段：傍晚開市
+        </span>
       </div>
-      <span id="time-remaining-label" class="font-mono text-[10px] sm:text-xs font-bold text-slate-300 whitespace-nowrap">10:00</span>
+
+      <!-- 下半部：發光彩色進度條與 4 處喘息刻度 -->
+      <div class="w-full bg-slate-900 h-2 sm:h-2.5 rounded-full overflow-hidden border border-slate-800 relative mt-1">
+        <div id="game-progress-bar" class="h-full bg-gradient-to-r from-cyan-500 via-amber-400 to-rose-500 transition-all duration-200 rounded-full" style="width: 0%;"></div>
+        <!-- 4 個喘息節點刻度標記 (2分, 4分, 6分, 8分 = 20%, 40%, 60%, 80%) -->
+        <div class="absolute top-0 bottom-0 left-[20%] w-0.5 bg-emerald-400 shadow-[0_0_4px_#34d399]" title="2分鐘喘息換班"></div>
+        <div class="absolute top-0 bottom-0 left-[40%] w-0.5 bg-emerald-400 shadow-[0_0_4px_#34d399]" title="4分鐘喘息換班"></div>
+        <div class="absolute top-0 bottom-0 left-[60%] w-0.5 bg-emerald-400 shadow-[0_0_4px_#34d399]" title="6分鐘喘息換班"></div>
+        <div class="absolute top-0 bottom-0 left-[80%] w-0.5 bg-emerald-400 shadow-[0_0_4px_#34d399]" title="8分鐘喘息換班"></div>
+      </div>
     </div>
 
-    <!-- 右側金幣與生命值 -->
-    <div class="flex items-center gap-1.5 sm:gap-2">
-      <div class="flex items-center gap-1 bg-amber-950/90 border border-amber-500/60 px-2 py-0.5 rounded-xl shadow-inner">
+    <!-- 右側：金幣、血量、音效與醒目暫停鍵 -->
+    <div class="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+      <div class="flex items-center gap-1 bg-amber-950/90 border border-amber-500/60 px-1.5 sm:px-2 py-0.5 rounded-xl shadow-inner">
         <i class="fa-solid fa-coins text-amber-400 text-xs"></i>
-        <span id="money-display" class="font-mono font-black text-amber-300 text-xs sm:text-sm">NT$ 150</span>
+        <span id="money-display" class="font-mono-num font-black text-amber-300 text-xs sm:text-sm">NT$ 175</span>
       </div>
-      <div class="flex items-center gap-1 bg-rose-950/80 border border-rose-500/50 px-2 py-0.5 rounded-xl">
+      <div class="flex items-center gap-1 bg-rose-950/80 border border-rose-500/50 px-1.5 sm:px-2 py-0.5 rounded-xl">
         <i class="fa-solid fa-heart text-rose-500 text-xs"></i>
-        <span id="lives-display" class="font-mono font-black text-rose-300 text-xs sm:text-sm">3</span>
+        <span id="lives-display" class="font-mono-num font-black text-rose-300 text-xs sm:text-sm">3</span>
       </div>
-      <button id="btn-sound" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 flex items-center justify-center text-xs border border-slate-700">
+      <button id="btn-sound" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 flex items-center justify-center text-xs border border-slate-700" title="音效切換">
         <i class="fa-solid fa-volume-high"></i>
       </button>
-      <button id="btn-guide-toggle" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 flex items-center justify-center text-xs border border-slate-700" title="遊戲指南">
-        <i class="fa-solid fa-circle-question"></i>
+      <!-- 醒目暫停鍵 -->
+      <button id="btn-pause-toggle" class="h-7 sm:h-8 px-2 sm:px-2.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold flex items-center gap-1 text-xs border border-amber-400/60 transition active:scale-95" title="暫停遊戲 (Space/Esc)">
+        <i class="fa-solid fa-pause"></i>
+        <span class="hidden sm:inline">暫停</span>
       </button>
     </div>
   </header>
 
-
-  <!-- 攤位選擇列與動態說明 (高密度精簡) -->
+  <!-- 攤位選擇列與說明 (高密度精簡、平價調整) -->
   <div class="w-full flex-shrink-0 bg-slate-900/90 border-b border-slate-800 px-2 py-1 flex items-center justify-between gap-1 overflow-x-auto z-20">
     <div class="flex items-center gap-1.5 sm:gap-2">
-      <!-- 珍奶 -->
+      <!-- 珍奶機 ($45) -->
       <button data-type="boba" class="stall-btn relative flex flex-col items-center justify-center w-12 h-14 sm:w-16 sm:h-16 rounded-xl bg-slate-800 border-2 border-slate-700 p-0.5 transition active:scale-95">
         <span class="text-base sm:text-xl">🧋</span>
         <span class="text-[9px] sm:text-[10px] font-black text-amber-200 leading-tight">珍奶機</span>
-        <span class="text-[8px] sm:text-[9px] font-mono text-amber-400 bg-black/50 px-1 rounded-full leading-tight">$50</span>
+        <span class="text-[8px] sm:text-[9px] font-mono-num text-amber-400 bg-black/50 px-1 rounded-full leading-tight">$45</span>
         <div class="stall-cd absolute inset-0 bg-slate-950/80 rounded-xl flex items-center justify-center text-[10px] font-mono text-white hidden">0s</div>
       </button>
 
-      <!-- 鹹酥雞 -->
+      <!-- 鹹酥雞 ($75) -->
       <button data-type="chicken" class="stall-btn relative flex flex-col items-center justify-center w-12 h-14 sm:w-16 sm:h-16 rounded-xl bg-slate-800 border-2 border-slate-700 p-0.5 transition active:scale-95">
         <span class="text-base sm:text-xl">🍗</span>
         <span class="text-[9px] sm:text-[10px] font-black text-amber-200 leading-tight">鹹酥雞</span>
-        <span class="text-[8px] sm:text-[9px] font-mono text-amber-400 bg-black/50 px-1 rounded-full leading-tight">$100</span>
+        <span class="text-[8px] sm:text-[9px] font-mono-num text-amber-400 bg-black/50 px-1 rounded-full leading-tight">$75</span>
         <div class="stall-cd absolute inset-0 bg-slate-950/80 rounded-xl flex items-center justify-center text-[10px] font-mono text-white hidden">0s</div>
       </button>
 
-      <!-- 大腸包小腸 (路障) -->
+      <!-- 大腸包小腸 ($50) -->
       <button data-type="sausage" class="stall-btn relative flex flex-col items-center justify-center w-12 h-14 sm:w-16 sm:h-16 rounded-xl bg-slate-800 border-2 border-slate-700 p-0.5 transition active:scale-95">
         <span class="text-base sm:text-xl">🌭</span>
         <span class="text-[9px] sm:text-[10px] font-black text-amber-200 leading-tight">大腸小腸</span>
-        <span class="text-[8px] sm:text-[9px] font-mono text-amber-400 bg-black/50 px-1 rounded-full leading-tight">$75</span>
+        <span class="text-[8px] sm:text-[9px] font-mono-num text-amber-400 bg-black/50 px-1 rounded-full leading-tight">$50</span>
         <div class="stall-cd absolute inset-0 bg-slate-950/80 rounded-xl flex items-center justify-center text-[10px] font-mono text-white hidden">0s</div>
       </button>
 
-      <!-- 臭豆腐油鍋 (脈衝緩速) -->
+      <!-- 臭豆腐油鍋 ($90) -->
       <button data-type="tofu" class="stall-btn relative flex flex-col items-center justify-center w-12 h-14 sm:w-16 sm:h-16 rounded-xl bg-slate-800 border-2 border-slate-700 p-0.5 transition active:scale-95">
         <span class="text-base sm:text-xl">🍲</span>
         <span class="text-[9px] sm:text-[10px] font-black text-amber-200 leading-tight">臭豆腐</span>
-        <span class="text-[8px] sm:text-[9px] font-mono text-amber-400 bg-black/50 px-1 rounded-full leading-tight">$125</span>
+        <span class="text-[8px] sm:text-[9px] font-mono-num text-amber-400 bg-black/50 px-1 rounded-full leading-tight">$90</span>
         <div class="stall-cd absolute inset-0 bg-slate-950/80 rounded-xl flex items-center justify-center text-[10px] font-mono text-white hidden">0s</div>
       </button>
 
-      <!-- 芒果刨冰機 (急凍控場) -->
+      <!-- 芒果刨冰機 ($120) -->
       <button data-type="ice" class="stall-btn relative flex flex-col items-center justify-center w-12 h-14 sm:w-16 sm:h-16 rounded-xl bg-slate-800 border-2 border-slate-700 p-0.5 transition active:scale-95">
         <span class="text-base sm:text-xl">🍧</span>
         <span class="text-[9px] sm:text-[10px] font-black text-amber-200 leading-tight">芒果冰</span>
-        <span class="text-[8px] sm:text-[9px] font-mono text-amber-400 bg-black/50 px-1 rounded-full leading-tight">$150</span>
+        <span class="text-[8px] sm:text-[9px] font-mono-num text-amber-400 bg-black/50 px-1 rounded-full leading-tight">$120</span>
         <div class="stall-cd absolute inset-0 bg-slate-950/80 rounded-xl flex items-center justify-center text-[10px] font-mono text-white hidden">0s</div>
       </button>
 
       <!-- 剷除工具 -->
-      <button id="btn-shovel" class="flex flex-col items-center justify-center w-10 h-14 sm:w-12 sm:h-16 rounded-xl bg-slate-800 border-2 border-slate-700 p-0.5 transition active:scale-95">
+      <button id="btn-shovel" class="flex flex-col items-center justify-center w-10 h-14 sm:w-12 sm:h-16 rounded-xl bg-slate-800 border-2 border-slate-700 p-0.5 transition active:scale-95" title="拆除攤位">
         <span class="text-sm sm:text-base">🧹</span>
         <span class="text-[8px] sm:text-[9px] font-black text-rose-300 mt-0.5">拆除</span>
       </button>
     </div>
 
-    <!-- 攤位功能即時說明框 (Tooltip Box) -->
+    <!-- 攤位功能即時說明框 -->
     <div id="stall-tip-box" class="flex-1 max-w-xs sm:max-w-md mx-2 px-2.5 py-1 bg-slate-950/90 border border-slate-700 rounded-xl text-[10px] sm:text-xs text-slate-300 flex items-center justify-between shadow-inner">
-      <span id="stall-tip-text" class="text-amber-300/90 truncate font-medium">💡 點選上方攤位擺放！每 2 分鐘換班喘息發放清潔獎金 NT$60。</span>
+      <span id="stall-tip-text" class="text-amber-300/90 truncate font-medium">💡 點選上方攤位擺放！開場附贈 $175，珍奶 6.5 秒產金幣，滑過即可磁吸！</span>
     </div>
   </div>
 
-  <!-- 主遊戲自適應區域 (嚴格限制在可用高度內，保持 16:9 且不捲動) -->
+  <!-- 主遊戲自適應區域 (16:9 且不捲動) -->
   <main class="w-full flex-1 relative overflow-hidden flex items-center justify-center p-1 sm:p-2 bg-slate-950">
     <div class="canvas-container relative w-full h-full max-w-[960px] max-h-[540px] aspect-[16/9]">
       <canvas id="gameCanvas" width="960" height="540" class="rounded-xl shadow-2xl border-2 border-slate-800 bg-slate-900"></canvas>
@@ -199,7 +228,7 @@
       <div id="breather-banner" class="absolute top-1/2 left-0 right-0 transform -translate-y-1/2 bg-emerald-600/95 text-white border-y-4 border-emerald-300 py-2.5 sm:py-3.5 text-center shadow-2xl z-40 pointer-events-none hidden transition-all duration-300">
         <div class="font-market text-xl sm:text-3xl font-black tracking-widest drop-shadow-md text-emerald-100 flex items-center justify-center gap-2">
           <span>🍵 換班喘息時間！</span>
-          <span id="breather-seconds-left" class="bg-black/40 px-2 py-0.5 rounded-lg text-amber-300 text-lg font-mono">12s</span>
+          <span id="breather-seconds-left" class="bg-black/40 px-2 py-0.5 rounded-lg text-amber-300 text-lg font-mono-num">12s</span>
         </div>
         <p class="text-[11px] sm:text-xs font-sans font-bold text-white mt-1">
           ✨ 街道清掃整理中，暫停出客！發放清潔獎勵 <span class="text-amber-300 font-black">+NT$ 60</span>！抓緊時間佈置攤位！
@@ -221,21 +250,44 @@
     </div>
   </main>
 
+  <!-- 暫停選單彈窗 (Pause Modal) -->
+  <div id="modal-pause" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border-4 border-amber-500 rounded-3xl p-6 sm:p-7 max-w-xs sm:max-w-sm w-full text-center shadow-2xl">
+      <div class="text-4xl mb-1">⏸️ 🍵</div>
+      <h2 class="font-market text-2xl sm:text-3xl text-amber-300 mb-1">遊戲暫停中</h2>
+      <p class="text-xs text-slate-400 mb-5">夜市營業暫時凍結，隨時準備重新開工！</p>
+
+      <div class="space-y-3">
+        <!-- 繼續經營 -->
+        <button id="btn-pause-resume" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 font-market text-slate-950 font-black text-base shadow-lg shadow-emerald-500/25 transition active:scale-95 flex items-center justify-center gap-2">
+          <i class="fa-solid fa-play"></i> 繼續經營 (Resume)
+        </button>
+        <!-- 觀看說明指南 -->
+        <button id="btn-pause-guide" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 font-bold text-xs sm:text-sm transition active:scale-95 flex items-center justify-center gap-2">
+          <i class="fa-solid fa-book-open"></i> 觀看經營指南 (Guide)
+        </button>
+        <!-- 重新開始本局 -->
+        <button id="btn-pause-restart" class="w-full py-2.5 rounded-xl bg-rose-950/60 hover:bg-rose-900/60 text-rose-300 border border-rose-600/50 font-bold text-xs sm:text-sm transition active:scale-95 flex items-center justify-center gap-2">
+          <i class="fa-solid fa-rotate-right"></i> 重新開始本局 (Restart)
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- 首頁開始畫面 (Start Screen) -->
   <div id="modal-start" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
     <div class="bg-slate-900 border-4 border-rose-500 rounded-3xl p-6 sm:p-8 max-w-sm sm:max-w-md w-full text-center shadow-2xl">
       <div class="text-4xl sm:text-5xl mb-2">🏮 🍢 🧋</div>
       <h1 class="font-market text-2xl sm:text-4xl text-rose-400 neon-text font-black mb-1">
-        夜市攤位大作戰
+        逢甲夜市保衛戰
       </h1>
-      <p class="text-amber-300 font-bold text-xs sm:text-sm mb-4">★ 10分鐘夜市保衛戰・必比登傳奇 ★</p>
+      <p class="text-amber-300 font-bold text-xs sm:text-sm mb-4">★ 10分鐘夜市營運・必比登傳奇 ★</p>
 
       <div class="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800 text-left text-xs text-slate-300 space-y-2 mb-6">
-        <p>⏰ <b>10 分鐘營業作戰</b>：由 17:00 開市營運至 24:00 打烊，經歷 5 大營業高峰階段！</p>
-        <p>🍵 <b>每 2 分鐘換班喘息</b>：享有 12 秒無怪安全期，並免費贈送 NT$ 60 清潔獎金！</p>
-        <p>👑 <b>米其林考核</b>：在第 6~8 分鐘迎接必比登神秘客親臨考核，贏取全場狂熱 BUFF！</p>
-        <p>✨ <b>磁吸收集</b>：滑鼠或手指直接滑過銅板即可<b>自動磁吸收集</b>。</p>
+        <p>⏰ <b>10 分鐘營業時鐘</b>：頂部專屬儀表即時顯示營業進度與 5 大尖峰階段。</p>
+        <p>💰 <b>開局優渥資金</b>：贈送 NT$ 175，珍奶降至 $45 且 6.5s 飛速產幣！</p>
+        <p>🍵 <b>每 2 分鐘換班喘息</b>：享有 12 秒安全整備期，外加 NT$ 60 清潔獎金！</p>
+        <p>✨ <b>自動磁吸與小費</b>：滑過硬幣自動收集，餵飽客人再獲 NT$ 10 額外小費。</p>
       </div>
 
       <div class="flex gap-2.5">
@@ -259,7 +311,7 @@
         <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
           <b class="text-cyan-300">⏰ 10 分鐘時間軸節奏</b>：
           <ul class="list-disc pl-4 mt-1 text-slate-400 space-y-0.5">
-            <li><b>00:00 - 02:00</b>：傍晚開市，僅低頭大學生，安心累積經濟。</li>
+            <li><b>00:00 - 02:00</b>：傍晚開市，前30秒完全和平，低頭族慢步前進，安心累積經濟。</li>
             <li><b>02:00 - 04:00</b>：下課人潮，快走大媽團湧現！</li>
             <li><b>04:00 - 06:00</b>：黃金尖峰，機車外送員與挑剔評論家登場。</li>
             <li><b>06:00 - 08:00</b>：評審暗訪，必比登神秘客出動考核！</li>
@@ -267,26 +319,26 @@
           </ul>
         </div>
         <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-          <b class="text-emerald-300">🍵 換班喘息機制</b>：每滿 2 分鐘（2分、4分、6分、8分）觸發 12 秒暫停出客，並自動入帳 <b>NT$ 60 清潔獎金</b>！
+          <b class="text-emerald-300">🍵 換班喘息機制</b>：每滿 2 分鐘（2分、4分、6分、8分）觸發 12 秒安全整備期，暫停出怪並入帳 <b>NT$ 60 清潔獎金</b>！
         </div>
         <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-          <b class="text-amber-300">🧋 珍珠奶茶機 ($50)</b>：每 7.5 秒穩定產出 NT$25 硬幣，初期務必多擺！
+          <b class="text-amber-300">🧋 珍珠奶茶機 ($45)</b>：每 6.5 秒穩定產出 NT$25 硬幣，初期必備搖錢樹！
         </div>
         <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-          <b class="text-amber-300">🍗 鹹酥雞炸爐 ($100)</b>：主要輸出，投擲香脆雞塊餵食同列客人。
+          <b class="text-amber-300">🍗 鹹酥雞炸爐 ($75)</b>：核心輸出，投擲香脆雞塊餵食同列客人。
         </div>
         <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-          <b class="text-amber-300">🌭 大腸包小腸 ($75)</b>：耐久度 300 的扎實路障。
+          <b class="text-amber-300">🌭 大腸包小腸 ($50)</b>：耐久度 300 的扎實路障。
         </div>
         <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-          <b class="text-amber-300">🍲 臭豆腐鍋 ($125)</b>：週期冒煙 2.2 秒，範圍緩速 35%。
+          <b class="text-amber-300">🍲 臭豆腐鍋 ($90)</b>：週期冒煙 2.2 秒，範圍緩速 35%。
         </div>
         <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-          <b class="text-amber-300">🍧 芒果刨冰機 ($150)</b>：引爆整列急凍 3 秒並造成 250 點重創。
+          <b class="text-amber-300">🍧 芒果刨冰機 ($120)</b>：引爆整列急凍 3 秒並造成 250 點重創。
         </div>
       </div>
       <button id="btn-close-guide" class="w-full mt-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition">
-        我知道了，返回攤位
+        我知道了，返回夜市
       </button>
     </div>
   </div>
@@ -338,7 +390,6 @@
       </button>
     </div>
   </div>
-
 
   <script>
     // Web Audio 音效模組
@@ -437,7 +488,6 @@
       playChime() {
         if (this.muted) return;
         this.init();
-        // 換班喘息輕快鐘聲 (E5 -> G#5 -> B5)
         [659.25, 830.61, 987.77].forEach((freq, idx) => {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
@@ -455,7 +505,6 @@
       playClosingBell() {
         if (this.muted) return;
         this.init();
-        // 24:00 打烊盛大凱旋和弦
         [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((freq, idx) => {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
@@ -477,75 +526,75 @@
       COLS: 8,
       CANVAS_WIDTH: 960,
       CANVAS_HEIGHT: 540,
-      INITIAL_MONEY: 150,
+      INITIAL_MONEY: 175, // 創業初始資金升至 175
       INITIAL_LIVES: 3,
-      TOTAL_DURATION_SEC: 600, // 正好 10 分鐘 (600 秒)
+      TOTAL_DURATION_SEC: 600, // 10 分鐘 (600 秒)
       BREATHER_DURATION_SEC: 12 // 換班喘息 12 秒
     };
 
-    // 攤位設定
+    // 攤位升級設定 (降價、快速產幣)
     const STALL_TYPES = {
       boba: {
         id: 'boba',
         name: '珍奶機',
         icon: '🧋',
-        cost: 50,
+        cost: 45, // $50 -> $45
         hp: 200,
         maxHp: 200,
-        cd: 5,
-        produceInterval: 7500,
-        desc: '【經濟基礎】每 7.5 秒穩定產出 NT$25 硬幣。'
+        cd: 4,
+        produceInterval: 6500, // 6.5 秒產出一次
+        desc: '【經濟基礎】每 6.5 秒穩定產出 NT$25 硬幣，滑過即磁吸！'
       },
       chicken: {
         id: 'chicken',
         name: '鹹酥雞炸爐',
         icon: '🍗',
-        cost: 100,
+        cost: 75, // $100 -> $75
         hp: 250,
         maxHp: 250,
-        cd: 6,
-        attackInterval: 1400,
-        damage: 26,
+        cd: 5,
+        attackInterval: 1350,
+        damage: 28,
         desc: '【核心輸出】投擲香脆鹽酥雞塊餵食同列客人。'
       },
       sausage: {
         id: 'sausage',
         name: '大腸包小腸',
         icon: '🌭',
-        cost: 75,
+        cost: 50, // $75 -> $50
         hp: 300,
         maxHp: 300,
-        cd: 10,
+        cd: 8,
         desc: '【路障阻礙】耐久度 300，抵擋啃咬，受損時外皮破損。'
       },
       tofu: {
         id: 'tofu',
         name: '臭豆腐油鍋',
         icon: '🍲',
-        cost: 125,
+        cost: 90, // $125 -> $90
         hp: 250,
         maxHp: 250,
-        cd: 8,
+        cd: 7,
         pulseCycle: 6000,
         activeDuration: 2200,
         damageTick: 12,
-        desc: '【脈衝緩速】週期冒煙 2.2 秒，範圍緩速 35% 並造成牽制傷害。'
+        desc: '【脈衝緩速】週期冒煙 2.2 秒，範圍緩速 35% 並牽制傷害。'
       },
       ice: {
         id: 'ice',
         name: '芒果刨冰機',
         icon: '🍧',
-        cost: 150,
+        cost: 120, // $150 -> $120
         hp: 150,
         maxHp: 150,
-        cd: 15,
+        cd: 12,
         fuseTime: 850,
-        damage: 250,
+        damage: 260,
         desc: '【爆發急凍】引爆後凍結整列客人 3 秒，並給予大範圍重創。'
       }
     };
 
-    // 遊戲運行狀態
+    // 遊戲狀態機
     const GameState = {
       canvas: null,
       ctx: null,
@@ -560,6 +609,7 @@
       cooldowns: { boba: 0, chicken: 0, sausage: 0, tofu: 0, ice: 0 },
       isOver: false,
       isStarted: false,
+      isPaused: false, // 暫停狀態
       totalFed: 0,
       totalEarned: CONFIG.INITIAL_MONEY,
       
@@ -571,7 +621,7 @@
       // 喘息狀態
       isBreather: false,
       breatherTimer: 0,
-      nextBreatherIndex: 0, // 已觸發的喘息索引 (0: 120s, 1: 240s, 2: 360s, 3: 480s)
+      nextBreatherIndex: 0, // 已觸發喘息索引 (120s, 240s, 360s, 480s)
       breatherMilestones: [120, 240, 360, 480],
       
       // 米其林
@@ -581,7 +631,6 @@
       mouseX: -100,
       mouseY: -100
     };
-
 
     // 顧客類別 (手繪擬人向量肖像)
     class Customer {
@@ -599,28 +648,28 @@
 
         if (type === 'student') {
           this.name = '低頭族大學生';
-          this.maxHp = 95;
-          this.speed = 0.52;
-          this.dps = 16;
+          this.maxHp = 82; // 微降血量更平滑
+          this.speed = 0.44; // 步伐放緩
+          this.dps = 15;
         } else if (type === 'auntie') {
           this.name = '導遊衝鋒大媽';
-          this.maxHp = 135;
-          this.speed = 0.82;
+          this.maxHp = 130;
+          this.speed = 0.78;
           this.dps = 24;
         } else if (type === 'delivery') {
           this.name = '外送員小哥';
-          this.maxHp = 180;
-          this.speed = 0.95;
+          this.maxHp = 175;
+          this.speed = 0.92;
           this.dps = 28;
         } else if (type === 'critic') {
           this.name = '挑剔美食評論家';
-          this.maxHp = 240;
-          this.speed = 0.44;
-          this.dps = 35;
+          this.maxHp = 230;
+          this.speed = 0.42;
+          this.dps = 32;
         } else if (type === 'michelin') {
           this.name = '必比登神秘客';
-          this.maxHp = 580;
-          this.speed = 0.38;
+          this.maxHp = 560;
+          this.speed = 0.36;
           this.dps = 22;
           this.isBoss = true;
         }
@@ -630,7 +679,7 @@
 
       update(dt) {
         if (this.isSatisfied) {
-          this.x += 2.5 * (dt / 16);
+          this.x += 2.6 * (dt / 16);
           this.walkCycle += 0.25;
           return;
         }
@@ -709,7 +758,6 @@
 
         // 人形特徵
         if (this.type === 'student') {
-          // 大學生：休閒帽T、耳機、黑框眼鏡、低頭發光手機
           ctx.fillStyle = '#0284c7';
           ctx.beginPath();
           ctx.roundRect(-14, 2 - bobble, 28, 20, 6);
@@ -742,7 +790,6 @@
           ctx.fillRect(-10, 12 - bobble, 4, 8);
 
         } else if (this.type === 'auntie') {
-          // 大媽：燙捲短髮、花襯衫、手舉紅色導遊小旗
           ctx.fillStyle = '#db2777';
           ctx.beginPath();
           ctx.roundRect(-15, 2 - bobble, 30, 20, 6);
@@ -779,7 +826,6 @@
           ctx.fill();
 
         } else if (this.type === 'delivery') {
-          // 外送員：綠色制服外套、全罩安全帽、身後大保溫箱
           ctx.fillStyle = '#10b981';
           ctx.fillRect(8, -8 - bobble, 16, 22);
           ctx.strokeStyle = '#047857';
@@ -802,7 +848,6 @@
           ctx.fill();
 
         } else if (this.type === 'critic') {
-          // 評論家：西裝領結、油頭、手拿放大鏡
           ctx.fillStyle = '#334155';
           ctx.beginPath();
           ctx.roundRect(-15, 2 - bobble, 30, 20, 5);
@@ -836,7 +881,6 @@
           ctx.stroke();
 
         } else if (this.type === 'michelin') {
-          // 必比登神秘客：米色風衣、紳士軟呢帽、金色光暈與手握金叉
           ctx.beginPath();
           ctx.arc(0, -10, 36, 0, Math.PI * 2);
           ctx.fillStyle = 'rgba(251, 191, 36, 0.2)';
@@ -892,7 +936,6 @@
       }
     }
 
-
     function createFloatText(x, y, text, color = '#fbbf24') {
       const container = document.getElementById('float-layer');
       const el = document.createElement('div');
@@ -934,6 +977,7 @@
       canvas.addEventListener('pointerdown', handleCanvasClick);
 
       canvas.addEventListener('pointermove', (e) => {
+        if (GameState.isPaused) return;
         const rect = canvas.getBoundingClientRect();
         GameState.mouseX = (e.clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
         GameState.mouseY = (e.clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
@@ -945,7 +989,7 @@
       for (let i = GameState.coins.length - 1; i >= 0; i--) {
         const coin = GameState.coins[i];
         const dist = Math.hypot(coin.x - GameState.mouseX, coin.y - GameState.mouseY);
-        if (dist <= 48) {
+        if (dist <= 52) { // 磁吸半徑擴至 52
           AudioEngine.playCoin();
           GameState.money += coin.val;
           GameState.totalEarned += coin.val;
@@ -993,7 +1037,6 @@
       }
     }
 
-
     function updateStalls(dt) {
       const cellW = CONFIG.CANVAS_WIDTH / CONFIG.COLS;
       const cellH = CONFIG.CANVAS_HEIGHT / CONFIG.ROWS;
@@ -1007,7 +1050,7 @@
           stall.x = c * cellW;
           stall.y = r * cellH;
 
-          // 1. 珍奶機產硬幣
+          // 1. 珍奶機產硬幣 (6.5 秒一次)
           if (stall.type === 'boba') {
             stall.timer = (stall.timer || 0) + dt * buffMultiplier;
             if (stall.timer >= STALL_TYPES.boba.produceInterval) {
@@ -1165,7 +1208,12 @@
       GameState.totalFed++;
 
       createExplosion(customer.x, customer.y, '#34d399', 14);
-      createFloatText(customer.x, customer.y - 28, '大滿足~ ⭐', '#10b981');
+      createFloatText(customer.x, customer.y - 28, '大滿足~ ⭐ +$10小費', '#10b981');
+
+      // 額外小費直接發放
+      GameState.money += 10;
+      GameState.totalEarned += 10;
+      updateHUD();
 
       if (customer.isBoss) {
         triggerMichelinBlessing();
@@ -1257,31 +1305,29 @@
       });
     }
 
-
     function updateTimelineAndBreather(dt) {
       GameState.elapsedTime += dt / 1000;
       const total = CONFIG.TOTAL_DURATION_SEC;
       const cur = Math.min(total, GameState.elapsedTime);
 
-      // 進度條
+      // 進度條寬度
       const pct = (cur / total) * 100;
       document.getElementById('game-progress-bar').style.width = `${pct}%`;
 
-      // 剩餘時間標籤 (MM:SS)
-      const secLeft = Math.max(0, Math.ceil(total - cur));
-      const mLeft = Math.floor(secLeft / 60);
-      const sLeft = secLeft % 60;
-      document.getElementById('time-remaining-label').textContent = 
-        `${String(mLeft).padStart(2, '0')}:${String(sLeft).padStart(2, '0')}`;
+      // 1. 已過時間碼 (MM:SS)
+      const mElapsed = Math.floor(cur / 60);
+      const sElapsed = Math.floor(cur % 60);
+      document.getElementById('elapsed-time-display').textContent = 
+        `${String(mElapsed).padStart(2, '0')}:${String(sElapsed).padStart(2, '0')}`;
 
-      // 夜市營業時鐘 (17:00 開市 -> 24:00 打烊，共 7 小時跨度)
+      // 2. 模擬夜市時鐘 (17:00 開市 -> 24:00 打烊，共 7 小時跨度)
       const hourOffset = (cur / total) * 7;
       const clockHours = 17 + Math.floor(hourOffset);
       const clockMins = Math.floor((hourOffset % 1) * 60);
       document.getElementById('market-clock-display').textContent = 
         `${String(clockHours).padStart(2, '0')}:${String(clockMins).padStart(2, '0')}`;
 
-      // 檢查是否觸發 2 分鐘喘息節點 (120s, 240s, 360s, 480s)
+      // 3. 檢查是否觸發 2 分鐘喘息節點 (120s, 240s, 360s, 480s)
       if (GameState.nextBreatherIndex < GameState.breatherMilestones.length) {
         const nextTarget = GameState.breatherMilestones[GameState.nextBreatherIndex];
         if (cur >= nextTarget && !GameState.isBreather) {
@@ -1289,23 +1335,49 @@
         }
       }
 
-      // 喘息中計時
+      // 4. 喘息進行中
       if (GameState.isBreather) {
         GameState.breatherTimer -= dt / 1000;
         document.getElementById('breather-seconds-left').textContent = `${Math.max(0, Math.ceil(GameState.breatherTimer))}s`;
 
+        // 更新 Badge 為喘息狀態
+        updateStageBadge('breather');
+
         if (GameState.breatherTimer <= 0) {
           endBreather();
         }
-        return; // 喘息期間不出新怪
+        return; // 喘息期間不推進出怪
       }
 
-      // 正常出怪邏輯 (隨 5 個 2 分鐘階段遞進難度)
+      // 5. 正常階段推進與動態標籤
       updateProgressiveSpawns(dt, cur);
 
-      // 10 分鐘打烊通關檢定
+      // 6. 10 分鐘到點打烊
       if (cur >= total && !GameState.isOver) {
         triggerVictory();
+      }
+    }
+
+    function updateStageBadge(stageKey) {
+      const badge = document.getElementById('current-stage-badge');
+      if (stageKey === 'breather') {
+        badge.className = 'px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black bg-emerald-950 text-emerald-300 border border-emerald-500/60 animate-pulse';
+        badge.textContent = '🍵 換班喘息整理中';
+      } else if (stageKey === 1) {
+        badge.className = 'px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black bg-cyan-950 text-cyan-300 border border-cyan-500/50';
+        badge.textContent = '第1階段：傍晚開市';
+      } else if (stageKey === 2) {
+        badge.className = 'px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black bg-teal-950 text-teal-300 border border-teal-500/50';
+        badge.textContent = '第2階段：下課人潮';
+      } else if (stageKey === 3) {
+        badge.className = 'px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black bg-amber-950 text-amber-300 border border-amber-500/60';
+        badge.textContent = '第3階段：黃金尖峰';
+      } else if (stageKey === 4) {
+        badge.className = 'px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black bg-purple-950 text-purple-300 border border-purple-500/60';
+        badge.textContent = '第4階段：評審暗訪';
+      } else if (stageKey === 5) {
+        badge.className = 'px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black bg-rose-950 text-rose-300 border border-rose-500/60';
+        badge.textContent = '第5階段：深夜狂潮';
       }
     }
 
@@ -1314,12 +1386,11 @@
       GameState.breatherTimer = CONFIG.BREATHER_DURATION_SEC;
       GameState.nextBreatherIndex++;
 
-      // 音效與橫幅
       AudioEngine.playChime();
       const banner = document.getElementById('breather-banner');
       banner.classList.remove('hidden');
 
-      // 清潔獎勵 +NT$ 60
+      // 清潔整理獎金 +NT$ 60
       GameState.money += 60;
       GameState.totalEarned += 60;
       updateHUD();
@@ -1340,45 +1411,42 @@
 
     function updateProgressiveSpawns(dt, curSec) {
       GameState.spawnTimer += dt;
-      const stageTag = document.getElementById('timeline-stage-tag');
-
       let interval = 7500;
       let pool = ['student'];
 
       if (curSec < 120) {
-        // 階段 1 (00:00 - 02:00) 傍晚開市・試吃暖身
-        stageTag.textContent = '傍晚開市';
-        interval = 7200;
+        // 階段 1 (00:00 - 02:00) 傍晚開市
+        updateStageBadge(1);
+        interval = 7000;
         pool = ['student'];
       } else if (curSec < 240) {
-        // 階段 2 (02:00 - 04:00) 下班下課・人潮湧現
-        stageTag.textContent = '下課人潮';
+        // 階段 2 (02:00 - 04:00) 下課人潮
+        updateStageBadge(2);
         interval = 4800;
         pool = ['student', 'auntie'];
       } else if (curSec < 360) {
-        // 階段 3 (04:00 - 06:00) 黃金尖峰・外送與評論家
-        stageTag.textContent = '黃金尖峰';
+        // 階段 3 (04:00 - 06:00) 黃金尖峰
+        updateStageBadge(3);
         interval = 3800;
         pool = ['student', 'auntie', 'delivery', 'critic'];
       } else if (curSec < 480) {
-        // 階段 4 (06:00 - 08:00) 暗訪決戰・必比登神秘客出動
-        stageTag.textContent = '評審暗訪';
+        // 階段 4 (06:00 - 08:00) 評審暗訪
+        updateStageBadge(4);
         interval = 3200;
         pool = ['auntie', 'delivery', 'critic'];
 
-        // 第 7 分鐘 (420秒) 必比登神秘客保證登場
         if (curSec >= 420 && !GameState.michelinSummoned) {
           triggerMichelinInspectorEncounter();
         }
       } else {
-        // 階段 5 (08:00 - 10:00) 深夜狂潮・收攤前夕最後衝刺
-        stageTag.textContent = '深夜衝刺';
-        interval = 2400; // 高密度湧入
+        // 階段 5 (08:00 - 10:00) 深夜狂潮
+        updateStageBadge(5);
+        interval = 2400;
         pool = ['student', 'auntie', 'delivery', 'critic'];
       }
 
-      // 開場前 15 秒完全和平
-      if (curSec < 15) return;
+      // 開場前 30 秒完全和平期，安心佈局
+      if (curSec < 30) return;
 
       if (GameState.spawnTimer >= interval) {
         GameState.spawnTimer = 0;
@@ -1387,7 +1455,6 @@
         GameState.customers.push(new Customer(cusType, randomRow));
       }
     }
-
 
     function updateCustomers(dt) {
       for (let i = GameState.customers.length - 1; i >= 0; i--) {
@@ -1444,6 +1511,7 @@
     }
 
     function handleCanvasClick(e) {
+      if (GameState.isPaused || !GameState.isStarted || GameState.isOver) return;
       AudioEngine.init();
       const rect = GameState.canvas.getBoundingClientRect();
       const clickX = (e.clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
@@ -1506,6 +1574,7 @@
       cdEl.classList.remove('hidden');
 
       const interval = setInterval(() => {
+        if (GameState.isPaused) return; // 暫停時不倒數 CD
         GameState.cooldowns[stallId] -= 1;
         if (GameState.cooldowns[stallId] <= 0) {
           clearInterval(interval);
@@ -1516,6 +1585,22 @@
         }
       }, 1000);
       cdEl.textContent = `${seconds}s`;
+    }
+
+    function togglePause() {
+      if (!GameState.isStarted || GameState.isOver) return;
+      GameState.isPaused = !GameState.isPaused;
+      const pauseModal = document.getElementById('modal-pause');
+      const pauseBtn = document.getElementById('btn-pause-toggle');
+
+      if (GameState.isPaused) {
+        pauseModal.classList.remove('hidden');
+        pauseBtn.innerHTML = '<i class="fa-solid fa-play"></i><span class="hidden sm:inline">繼續</span>';
+      } else {
+        pauseModal.classList.add('hidden');
+        pauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i><span class="hidden sm:inline">暫停</span>';
+        GameState.lastFrameTime = performance.now(); // 避免時間跳躍
+      }
     }
 
     function setupUI() {
@@ -1548,17 +1633,40 @@
         tipBox.textContent = '【拆除收攤】請點選要收攤的格子。';
       });
 
+      // 暫停鍵與選單三功能綁定
+      document.getElementById('btn-pause-toggle').addEventListener('click', togglePause);
+      document.getElementById('btn-pause-resume').addEventListener('click', togglePause);
+
+      document.getElementById('btn-pause-guide').addEventListener('click', () => {
+        document.getElementById('modal-guide').classList.remove('hidden');
+      });
+
+      document.getElementById('btn-pause-restart').addEventListener('click', () => {
+        document.getElementById('modal-pause').classList.add('hidden');
+        GameState.isPaused = false;
+        document.getElementById('btn-pause-toggle').innerHTML = '<i class="fa-solid fa-pause"></i><span class="hidden sm:inline">暫停</span>';
+        resetGame();
+      });
+
+      // 鍵盤暫停快速鍵 (Space 或 Esc)
+      window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' || e.code === 'Escape') {
+          if (GameState.isStarted && !GameState.isOver) {
+            e.preventDefault();
+            togglePause();
+          }
+        }
+      });
+
+      // 首頁與指南
       document.getElementById('btn-start-game').addEventListener('click', () => {
         AudioEngine.init();
         document.getElementById('modal-start').classList.add('hidden');
         GameState.isStarted = true;
+        GameState.lastFrameTime = performance.now();
       });
 
       document.getElementById('btn-show-tutorial').addEventListener('click', () => {
-        document.getElementById('modal-guide').classList.remove('hidden');
-      });
-
-      document.getElementById('btn-guide-toggle').addEventListener('click', () => {
         document.getElementById('modal-guide').classList.remove('hidden');
       });
 
@@ -1614,6 +1722,7 @@
       document.getElementById('modal-victory').classList.add('hidden');
       document.getElementById('modal-defeat').classList.add('hidden');
       document.getElementById('breather-banner').classList.add('hidden');
+      document.getElementById('modal-pause').classList.add('hidden');
 
       GameState.money = CONFIG.INITIAL_MONEY;
       GameState.lives = CONFIG.INITIAL_LIVES;
@@ -1623,6 +1732,7 @@
       GameState.particles = [];
       GameState.coins = [];
       GameState.isOver = false;
+      GameState.isPaused = false;
       GameState.totalFed = 0;
       GameState.totalEarned = CONFIG.INITIAL_MONEY;
 
@@ -1633,6 +1743,7 @@
       GameState.nextBreatherIndex = 0;
       GameState.michelinSummoned = false;
       GameState.michelinBuffTimer = 0;
+      GameState.lastFrameTime = performance.now();
 
       for (let r = 0; r < CONFIG.ROWS; r++) {
         for (let c = 0; c < CONFIG.COLS; c++) {
@@ -1642,14 +1753,14 @@
 
       updateHUD();
       updateSelectedToolUI();
+      updateStageBadge(1);
     }
 
-    // 主循環
     function gameLoop(now) {
       const dt = Math.min(64, now - GameState.lastFrameTime);
       GameState.lastFrameTime = now;
 
-      if (GameState.isStarted && !GameState.isOver) {
+      if (GameState.isStarted && !GameState.isOver && !GameState.isPaused) {
         if (GameState.michelinBuffTimer > 0) {
           GameState.michelinBuffTimer -= dt;
         }
