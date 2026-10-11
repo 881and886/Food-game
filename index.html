@@ -38,20 +38,10 @@
       line-height: 24px;
       text-align: center;
     }
-    .half-plate-back {
-      opacity: 0.25;
-      filter: grayscale(100%);
-    }
-    .half-plate-front {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 50%;
-      overflow: hidden;
-      white-space: nowrap;
-    }
+    .half-plate-back { opacity: 0.25; filter: grayscale(100%); }
+    .half-plate-front { position: absolute; top: 0; left: 0; width: 50%; overflow: hidden; white-space: nowrap; }
 
-    /* 手機橫向緊湊樣式 (Landscape Compact) */
+    /* 手機橫向緊湊樣式 */
     @media (orientation: landscape) and (max-height: 520px) {
       header { padding-top: 2px !important; padding-bottom: 2px !important; }
       .header-title-sub { display: none !important; }
@@ -65,18 +55,21 @@
 </head>
 <body class="flex flex-col text-white w-screen h-screen">
 
-  <!-- ================= 直向警示旋轉提示遮罩 (針對行動裝置) ================= -->
+  <!-- 背景音樂音訊元素 -->
+  <audio id="bgmAudio" src="bgm-2.mp3" loop preload="auto"></audio>
+
+  <!-- 直向警示旋轉提示遮罩 -->
   <div id="rotateOverlay" class="fixed inset-0 bg-slate-950/95 z-[100] hidden flex-col items-center justify-center p-6 text-center backdrop-blur-md">
     <div class="relative w-24 h-24 mb-6 flex items-center justify-center">
       <div class="text-6xl animate-rotate-device">📱</div>
     </div>
     <h2 class="text-xl font-black text-amber-400 mb-2 neon-text-gold">請將裝置轉為橫向進行遊戲</h2>
     <p class="text-xs text-slate-300 max-w-xs leading-relaxed">
-      《必比登夜市保衛戰》採用寬幅多走道視野設計，轉為橫向可獲得最佳操作手感與完整視角！
+      《必比登夜市保衛戰》採用寬幅走廊設計，轉為橫向可獲得最佳操作手感與完整視角！
     </p>
   </div>
 
-  <!-- 頂部資訊列 (RWD 自適應) -->
+  <!-- 頂部資訊列 -->
   <header class="flex-none bg-slate-900/90 border-b border-slate-800 px-3 py-1.5 flex items-center justify-between z-30 shadow-md">
     <!-- 左側：招牌與版本 -->
     <div class="flex items-center gap-2">
@@ -84,7 +77,7 @@
       <div>
         <div class="flex items-center gap-1.5">
           <h1 class="text-xs md:text-base font-black tracking-wider text-rose-400 neon-text-red leading-tight">必比登夜市保衛戰</h1>
-          <span class="bg-rose-950/80 text-rose-300 text-[9px] px-1.5 py-0.2 rounded border border-rose-800 font-mono">v1.2</span>
+          <span class="bg-rose-950/80 text-rose-300 text-[9px] px-1.5 py-0.2 rounded border border-rose-800 font-mono">v1.3</span>
         </div>
         <p class="header-title-sub text-[10px] text-amber-300 font-semibold leading-none hidden sm:block">10分鐘米其林星級考核</p>
       </div>
@@ -115,8 +108,8 @@
       </div>
     </div>
 
-    <!-- 右側：金幣、血量、全螢幕、暫停 -->
-    <div class="flex items-center gap-1.5 md:gap-2">
+    <!-- 右側：金幣、血量、BGM、音效、全螢幕、暫停 -->
+    <div class="flex items-center gap-1 md:gap-1.5">
       <div class="bg-amber-950/70 border border-amber-600/70 px-2 py-0.5 md:px-2.5 md:py-1 rounded-md flex items-center gap-1 shadow-sm">
         <span class="text-xs md:text-sm">🪙</span>
         <span id="moneyDisplay" class="font-mono font-black text-amber-300 text-xs md:text-base neon-text-gold">NT$ 175</span>
@@ -127,14 +120,19 @@
         <span id="healthDisplay">3</span>
       </div>
 
+      <!-- BGM 音樂開關按鈕 -->
+      <button id="bgmBtn" class="bg-indigo-900/80 hover:bg-indigo-800 text-indigo-200 px-1.5 py-1 rounded-md text-xs border border-indigo-700 flex items-center gap-0.5 transition-colors" title="背景音樂開關">
+        🎵 <span class="hidden md:inline text-[10px] font-bold">BGM</span>
+      </button>
+
+      <!-- 遊戲音效開關按鈕 -->
+      <button id="muteBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1 md:p-1.5 rounded-md text-xs border border-slate-700" title="遊戲音效開關">
+        🔊
+      </button>
+
       <!-- 全螢幕切換按鈕 -->
       <button id="fullscreenBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1 md:p-1.5 rounded-md text-xs border border-slate-700" title="全螢幕切換">
         ⛶
-      </button>
-
-      <!-- 靜音切換按鈕 -->
-      <button id="muteBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1 md:p-1.5 rounded-md text-xs border border-slate-700">
-        🔊
       </button>
 
       <!-- 暫停按鈕 -->
@@ -188,13 +186,12 @@
       </div>
     </div>
 
-    <!-- 即時功能提示框 -->
     <div id="unitTooltip" class="hidden md:flex flex-1 max-w-md bg-slate-900/90 border border-slate-700 px-3 py-1 rounded-md text-[11px] text-slate-300 items-center justify-between shadow-sm">
       <span id="tooltipContent">點選攤位後在紅磚道部署，滑鼠或手指滑過硬幣即可拾取。</span>
     </div>
   </section>
 
-  <!-- 主畫布容器 (完全自適應) -->
+  <!-- 主畫布容器 -->
   <main class="flex-1 relative flex items-center justify-center bg-slate-950 p-1 overflow-hidden" id="canvasContainer">
     <div class="relative w-full h-full flex items-center justify-center">
       <canvas id="gameCanvas" width="960" height="540" class="bg-[#111827] rounded-lg shadow-2xl border border-slate-800 cursor-crosshair"></canvas>
@@ -207,15 +204,14 @@
     </div>
   </main>
 
-  <!-- 開始畫面 Modal (含廣告招商展位與版本紀錄) -->
+  <!-- 開始畫面 Modal -->
   <div id="startModal" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center z-50 p-3 overflow-y-auto">
     <div class="max-w-3xl w-full flex flex-col md:flex-row items-center gap-4 bg-slate-900/95 border border-slate-700 rounded-2xl p-5 shadow-2xl">
       
-      <!-- 主選單核心 -->
       <div class="flex-1 text-center md:text-left">
         <div class="inline-flex items-center gap-2 mb-1">
           <span class="text-3xl">🏮</span>
-          <span class="bg-rose-950 border border-rose-600 text-rose-300 text-[10px] px-2 py-0.5 rounded font-mono font-bold">版本 v1.2</span>
+          <span class="bg-rose-950 border border-rose-600 text-rose-300 text-[10px] px-2 py-0.5 rounded font-mono font-bold">版本 v1.3</span>
         </div>
         <h2 class="text-2xl md:text-3xl font-black text-rose-400 neon-text-red mb-1">必比登夜市保衛戰</h2>
         <p class="text-xs text-amber-300 font-bold mb-3 tracking-wider">10分鐘米其林神秘客暗訪傳奇</p>
@@ -223,7 +219,7 @@
         <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 space-y-1 mb-4 leading-relaxed">
           <p class="text-amber-200 font-bold">🎯 經營目標：</p>
           <p>• 堅持營運滿 <b class="text-yellow-300">10 分鐘（24:00 打烊）</b>，衝刺最高 5 個米其林餐盤評價！</p>
-          <p>• 每 2 分鐘進行一次 <b class="text-emerald-300">3 秒極速換班</b>，發放 NT$50 整備獎金！</p>
+          <p>• 內建熱血夜市 BGM，支援右上角隨時開關音樂與音效。</p>
           <p>• 手機玩家請橫向持握以獲得最佳寬螢幕視野。</p>
         </div>
 
@@ -240,7 +236,7 @@
         </div>
       </div>
 
-      <!-- 右側：預留招商/廣告熱位 (Sponsorship Box) -->
+      <!-- 招商展示看板 -->
       <div class="w-full md:w-64 bg-slate-950/90 border border-amber-500/40 rounded-xl p-3 flex flex-col items-center text-center shadow-inner">
         <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/40 font-bold mb-2">⭐ 熱門攤位合作招商</span>
         <div class="w-full h-24 bg-slate-900 border border-dashed border-slate-700 rounded-lg flex flex-col items-center justify-center p-2 text-slate-400">
@@ -254,7 +250,7 @@
     </div>
   </div>
 
-  <!-- 暫停選單 Modal (四功能：繼續 / 說明 / 重玩 / 回首頁) -->
+  <!-- 暫停選單 Modal -->
   <div id="pauseModal" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-slate-900 border border-slate-700 max-w-sm w-full rounded-2xl p-5 text-center shadow-2xl">
       <div class="text-4xl mb-2">⏸️</div>
@@ -289,14 +285,14 @@
         <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
           <p class="font-bold text-amber-300 mb-1">【製作團隊資訊】</p>
           <p>• <b>遊戲企劃與設計</b>：台灣在地夜市創生小組</p>
-          <p>• <b>核心主題</b>：小吃文化傳承、米其林美食評審制度、休閒塔防策略</p>
-          <p>• <b>技術架構</b>：HTML5 Canvas + 純前端 Web Audio API（單檔綠色免安裝）</p>
+          <p>• <b>主題背景</b>：小吃文化傳承、米其林美食評審考核、休閒塔防策略</p>
+          <p>• <b>原創音樂</b>：背景音樂 `bgm-2.mp3`</p>
         </div>
         <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
           <p class="font-bold text-cyan-300 mb-1">【版本歷程】</p>
-          <p>• <b>v1.2.0</b>：加入行動裝置橫向偵測與引導、全螢幕支援、米其林 5 餐盤評分系統（含 0.5 盤階）、暫停返回主選單。</p>
-          <p>• <b>v1.1.0</b>：修復 Canvas 座標偏移 BUG、非初級敵人血量提升 50%、芒果冰 CD 縮短至 9 秒、換班喘息調整為 3 秒。</p>
-          <p>• <b>v1.0.0</b>：夜市保衛戰核心成型，具備 5 走道、5 攤位、必比登神秘客暗訪機制。</p>
+          <p>• <b>v1.3.0</b>：正式整合自訂背景音樂 `bgm-2.mp3`，新增專屬 BGM 音樂開關按鈕、暫停時同步暫停音樂。</p>
+          <p>• <b>v1.2.0</b>：加入行動裝置橫向偵測與引導、全螢幕支援、米其林 5 餐盤評分系統（含 0.5 盤階）。</p>
+          <p>• <b>v1.1.0</b>：修復 Canvas 座標偏移 BUG、非初級敵人血量提升 50%、芒果冰 CD 縮短至 9 秒。</p>
         </div>
       </div>
       <button id="closeChangelogBtn2" class="mt-2 w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 rounded-xl text-xs">關閉說明</button>
@@ -328,19 +324,16 @@
     </div>
   </div>
 
-  <!-- 結算畫面 (5個餐盤評分系統，支援半個餐盤) -->
+  <!-- 結算畫面 -->
   <div id="endModal" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md hidden items-center justify-center z-50 p-4">
     <div class="bg-slate-900 border border-slate-700 max-w-sm w-full rounded-2xl p-6 text-center shadow-2xl">
       <div id="endIcon" class="text-4xl mb-1">🍽️</div>
       <h3 id="endTitle" class="text-xl md:text-2xl font-black text-amber-300 mb-1">24:00 打烊圓滿通關！</h3>
       <p id="endSubtitle" class="text-xs text-slate-300 mb-3">米其林必比登星級評定結果</p>
 
-      <!-- 5個餐盤評分展示區 -->
       <div class="bg-slate-950 border border-amber-600/50 rounded-xl p-3 mb-4">
         <div class="text-[10px] text-amber-400 font-bold mb-1">【官方米其林餐盤榮譽】</div>
-        <div id="platesDisplay" class="flex justify-center items-center gap-1.5 my-1">
-          <!-- 動態生成餐盤 -->
-        </div>
+        <div id="platesDisplay" class="flex justify-center items-center gap-1.5 my-1"></div>
         <div class="text-lg font-mono font-black text-amber-300 mt-1">
           <span id="scoreNumber">4.5</span> <span class="text-xs text-slate-400">/ 5.0 🍽️</span>
         </div>
@@ -365,6 +358,43 @@
   </div>
 
   <script>
+    /* ================= BGM 背景音樂控制 ================= */
+    const bgmAudio = document.getElementById('bgmAudio');
+    const bgmBtn = document.getElementById('bgmBtn');
+    let isBgmEnabled = true;
+
+    // 設定 BGM 預設音量適中，避免蓋過音效
+    bgmAudio.volume = 0.45;
+
+    function startBgm() {
+      if (isBgmEnabled) {
+        bgmAudio.play().catch(() => {
+          // 若受瀏覽器 Autoplay 限制，待首次手勢互動後播放
+        });
+      }
+    }
+
+    function pauseBgm() {
+      bgmAudio.pause();
+    }
+
+    function toggleBgm() {
+      isBgmEnabled = !isBgmEnabled;
+      if (isBgmEnabled) {
+        bgmAudio.play().catch(() => {});
+        bgmBtn.classList.remove('opacity-40', 'bg-slate-800');
+        bgmBtn.classList.add('bg-indigo-900/80', 'text-indigo-200');
+        bgmBtn.innerHTML = '🎵 <span class="hidden md:inline text-[10px] font-bold">BGM</span>';
+      } else {
+        bgmAudio.pause();
+        bgmBtn.classList.add('opacity-40', 'bg-slate-800');
+        bgmBtn.classList.remove('bg-indigo-900/80', 'text-indigo-200');
+        bgmBtn.innerHTML = '🔇 <span class="hidden md:inline text-[10px] font-bold">BGM</span>';
+      }
+    }
+
+    bgmBtn.addEventListener('click', toggleBgm);
+
     /* ================= 行動裝置直向/橫向偵測 ================= */
     const rotateOverlay = document.getElementById('rotateOverlay');
 
@@ -376,7 +406,8 @@
         rotateOverlay.classList.remove('hidden');
         rotateOverlay.classList.add('flex');
         if (isRunning && !isPaused) {
-          isPaused = true; // 直向自動靜止
+          isPaused = true;
+          pauseBgm();
         }
       } else {
         rotateOverlay.classList.add('hidden');
@@ -400,7 +431,7 @@
       }
     });
 
-    /* ================= 音效引擎 ================= */
+    /* ================= Web Audio 音效引擎 ================= */
     let audioCtx = null;
     let isMuted = false;
 
@@ -487,7 +518,6 @@
     const CELL_W = canvas.width / COLS;
     const CELL_H = canvas.height / ROWS;
 
-    /* ================= 精準 Canvas 尺寸縮放 ================= */
     function resizeCanvasToFit() {
       const container = document.getElementById('canvasContainer');
       if (!container) return;
@@ -574,7 +604,7 @@
       stageBadge.className = `text-[9px] md:text-[10px] px-1.5 py-0.2 rounded-full font-bold border ${badgeClass}`;
     }
 
-    /* ================= 顧客類別 (加強血量 +50%) ================= */
+    /* ================= 顧客類別 ================= */
     class Customer {
       constructor(type, row) {
         this.type = type;
@@ -842,10 +872,10 @@
     class Bullet {
       constructor(x, y, row) {
         this.x = x;
-        this.y = y;
         this.row = row;
         this.speed = 340;
         this.hit = false;
+        this.y = y;
       }
       update(dt) {
         this.x += this.speed * dt;
@@ -1076,7 +1106,6 @@
         }
       }
 
-      // 排隊區
       ctx.fillStyle = 'rgba(245, 158, 11, 0.08)';
       ctx.fillRect((COLS - 1) * CELL_W, 0, CELL_W, canvas.height);
       for (let r = 0; r < ROWS; r++) {
@@ -1085,7 +1114,6 @@
         ctx.fillText('排隊動線 ➔', (COLS - 0.85) * CELL_W, r * CELL_H + CELL_H / 2);
       }
 
-      // 懸停對齊框
       if (hoverRow >= 0 && hoverRow < ROWS && hoverCol >= 0 && hoverCol < COLS - 1) {
         ctx.fillStyle = selectedTool === 'shovel' ? 'rgba(244, 63, 94, 0.2)' : 'rgba(56, 189, 248, 0.2)';
         ctx.fillRect(hoverCol * CELL_W, hoverRow * CELL_H, CELL_W, CELL_H);
@@ -1112,14 +1140,13 @@
       }
     }
 
-    /* ================= 互動處理 (滑鼠與觸控統一) ================= */
+    /* ================= 互動處理 ================= */
     function handleBoardAction(clientX, clientY) {
       initAudio();
       if (!isRunning || isPaused) return;
 
       const pos = getCanvasCoordinates(clientX, clientY);
 
-      // 優先吸取/拾取銅板
       for (const coin of coins) {
         if (!coin.picked && Math.hypot(coin.x - pos.x, coin.y - pos.y) < 36) {
           coin.picked = true;
@@ -1172,7 +1199,6 @@
       hoverCol = Math.floor(pos.x / CELL_W);
       hoverRow = Math.floor(pos.y / CELL_H);
 
-      // 自動磁吸收集
       coins.forEach(coin => {
         if (!coin.picked && Math.hypot(coin.x - pos.x, coin.y - pos.y) < 56) {
           coin.picked = true;
@@ -1183,12 +1209,10 @@
       });
     }
 
-    // 滑鼠事件
     canvas.addEventListener('click', (e) => handleBoardAction(e.clientX, e.clientY));
     canvas.addEventListener('mousemove', (e) => handleHoverMove(e.clientX, e.clientY));
     canvas.addEventListener('mouseleave', () => { hoverRow = -1; hoverCol = -1; });
 
-    // 觸控事件 (支援手機)
     canvas.addEventListener('touchstart', (e) => {
       if (e.touches.length > 0) {
         const t = e.touches[0];
@@ -1227,7 +1251,7 @@
       });
     });
 
-    /* ================= 暫停選單邏輯 (四功能) ================= */
+    /* ================= 暫停選單邏輯 ================= */
     const pauseBtn = document.getElementById('pauseBtn');
     const resumeBtn = document.getElementById('resumeBtn');
     const pauseGuideBtn = document.getElementById('pauseGuideBtn');
@@ -1238,9 +1262,11 @@
       if (!isRunning) return;
       isPaused = !isPaused;
       if (isPaused) {
+        pauseBgm(); // 暫停時音樂暫停
         pauseModal.classList.remove('hidden');
         pauseModal.classList.add('flex');
       } else {
+        startBgm(); // 恢復時繼續播放
         pauseModal.classList.add('hidden');
         pauseModal.classList.remove('flex');
         lastTimestamp = performance.now();
@@ -1261,8 +1287,8 @@
       resetGame();
     });
 
-    // 回到主選單
     returnHomeBtn.addEventListener('click', () => {
+      pauseBgm();
       pauseModal.classList.add('hidden');
       pauseModal.classList.remove('flex');
       isRunning = false;
@@ -1309,7 +1335,7 @@
     closeChangelogBtn.addEventListener('click', hideChangelog);
     closeChangelogBtn2.addEventListener('click', hideChangelog);
 
-    /* ================= 結算評分系統 (5 個餐盤，含 0.5 半盤) ================= */
+    /* ================= 結算評分系統 ================= */
     function renderPlates(score) {
       const platesDisplay = document.getElementById('platesDisplay');
       platesDisplay.innerHTML = '';
@@ -1342,6 +1368,7 @@
 
     function endGame(victory) {
       isRunning = false;
+      pauseBgm(); // 結算時關閉音樂，強調結算音效
       endModal.classList.remove('hidden');
       endModal.classList.add('flex');
 
@@ -1358,16 +1385,14 @@
       finalFed.textContent = `${fedCount} 人`;
       finalBossStatus.textContent = bossServed ? '成功招待 (+0.5🍽️)' : '未完整招待';
 
-      // 綜合評分演算法 (最高 5.0 分，最小單位 0.5)
       let score = 0;
       if (victory) {
-        score = 3.0; // 通關底分 3.0
-        if (lives === 3) score += 0.5; // 滿心保護
-        if (bossServed) score += 0.5;  // 餵飽米其林
+        score = 3.0;
+        if (lives === 3) score += 0.5;
+        if (bossServed) score += 0.5;
         if (fedCount >= 80) score += 1.0;
         else if (fedCount >= 50) score += 0.5;
       } else {
-        // 失敗依時間比例計分
         const ratio = gameTime / TOTAL_GAME_SECONDS;
         if (ratio >= 0.7) score = 2.5;
         else if (ratio >= 0.4) score = 2.0;
@@ -1404,9 +1429,10 @@
       }
     }
 
-    /* ================= 遊戲重置與按鈕綁定 ================= */
+    /* ================= 遊戲重置與控制綁定 ================= */
     document.getElementById('realStartBtn').addEventListener('click', () => {
       initAudio();
+      startBgm();
       startModal.classList.add('hidden');
       resizeCanvasToFit();
       checkOrientation();
@@ -1416,6 +1442,7 @@
     document.getElementById('playAgainBtn').addEventListener('click', () => {
       endModal.classList.add('hidden');
       endModal.classList.remove('flex');
+      startBgm();
       resetGame();
     });
 
@@ -1427,6 +1454,7 @@
       startModal.classList.add('flex');
     });
 
+    // 遊戲音效開關
     document.getElementById('muteBtn').addEventListener('click', () => {
       isMuted = !isMuted;
       document.getElementById('muteBtn').textContent = isMuted ? '🔇' : '🔊';
@@ -1463,7 +1491,6 @@
       lastTimestamp = performance.now();
     }
 
-    // 啟動主循環與初次適配檢查
     checkOrientation();
     requestAnimationFrame(gameLoop);
   </script>
