@@ -77,7 +77,7 @@
       <div>
         <div class="flex items-center gap-1.5">
           <h1 class="text-xs md:text-base font-black tracking-wider text-rose-400 neon-text-red leading-tight">必比登夜市保衛戰</h1>
-          <span class="bg-rose-950/80 text-rose-300 text-[9px] px-1.5 py-0.2 rounded border border-rose-800 font-mono">v1.3</span>
+          <span class="bg-rose-950/80 text-rose-300 text-[9px] px-1.5 py-0.2 rounded border border-rose-800 font-mono">v1.4</span>
         </div>
         <p class="header-title-sub text-[10px] text-amber-300 font-semibold leading-none hidden sm:block">10分鐘米其林星級考核</p>
       </div>
@@ -120,12 +120,12 @@
         <span id="healthDisplay">3</span>
       </div>
 
-      <!-- BGM 音樂開關按鈕 -->
+      <!-- BGM 按鈕 -->
       <button id="bgmBtn" class="bg-indigo-900/80 hover:bg-indigo-800 text-indigo-200 px-1.5 py-1 rounded-md text-xs border border-indigo-700 flex items-center gap-0.5 transition-colors" title="背景音樂開關">
         🎵 <span class="hidden md:inline text-[10px] font-bold">BGM</span>
       </button>
 
-      <!-- 遊戲音效開關按鈕 -->
+      <!-- 遊戲音效按鈕 -->
       <button id="muteBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1 md:p-1.5 rounded-md text-xs border border-slate-700" title="遊戲音效開關">
         🔊
       </button>
@@ -211,7 +211,7 @@
       <div class="flex-1 text-center md:text-left">
         <div class="inline-flex items-center gap-2 mb-1">
           <span class="text-3xl">🏮</span>
-          <span class="bg-rose-950 border border-rose-600 text-rose-300 text-[10px] px-2 py-0.5 rounded font-mono font-bold">版本 v1.3</span>
+          <span class="bg-rose-950 border border-rose-600 text-rose-300 text-[10px] px-2 py-0.5 rounded font-mono font-bold">版本 v1.4</span>
         </div>
         <h2 class="text-2xl md:text-3xl font-black text-rose-400 neon-text-red mb-1">必比登夜市保衛戰</h2>
         <p class="text-xs text-amber-300 font-bold mb-3 tracking-wider">10分鐘米其林神秘客暗訪傳奇</p>
@@ -219,8 +219,8 @@
         <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 space-y-1 mb-4 leading-relaxed">
           <p class="text-amber-200 font-bold">🎯 經營目標：</p>
           <p>• 堅持營運滿 <b class="text-yellow-300">10 分鐘（24:00 打烊）</b>，衝刺最高 5 個米其林餐盤評價！</p>
-          <p>• 內建熱血夜市 BGM，支援右上角隨時開關音樂與音效。</p>
-          <p>• 手機玩家請橫向持握以獲得最佳寬螢幕視野。</p>
+          <p>• <b class="text-rose-300">難度升級</b>：每過一個階段出怪速度將<b>加速 20%</b>，後段人潮更加兇猛！</p>
+          <p>• 支援背景音樂 `bgm-2.mp3`，隨時可開關音樂與音效。</p>
         </div>
 
         <div class="flex flex-wrap gap-2">
@@ -290,6 +290,7 @@
         </div>
         <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
           <p class="font-bold text-cyan-300 mb-1">【版本歷程】</p>
+          <p>• <b>v1.4.0</b>：實施「階梯加速挑戰機制」，每過一個階段出怪速度加快 20%，深夜尖峰高達每 2.2 秒出怪並加入多路同時刷新。</p>
           <p>• <b>v1.3.0</b>：正式整合自訂背景音樂 `bgm-2.mp3`，新增專屬 BGM 音樂開關按鈕、暫停時同步暫停音樂。</p>
           <p>• <b>v1.2.0</b>：加入行動裝置橫向偵測與引導、全螢幕支援、米其林 5 餐盤評分系統（含 0.5 盤階）。</p>
           <p>• <b>v1.1.0</b>：修復 Canvas 座標偏移 BUG、非初級敵人血量提升 50%、芒果冰 CD 縮短至 9 秒。</p>
@@ -363,14 +364,11 @@
     const bgmBtn = document.getElementById('bgmBtn');
     let isBgmEnabled = true;
 
-    // 設定 BGM 預設音量適中，避免蓋過音效
     bgmAudio.volume = 0.45;
 
     function startBgm() {
       if (isBgmEnabled) {
-        bgmAudio.play().catch(() => {
-          // 若受瀏覽器 Autoplay 限制，待首次手勢互動後播放
-        });
+        bgmAudio.play().catch(() => {});
       }
     }
 
@@ -587,16 +585,16 @@
         stageText = '第1階段：傍晚開市';
         badgeClass = 'bg-blue-900/80 text-blue-200 border-blue-700';
       } else if (t < 240) {
-        stageText = '第2階段：下課人潮';
+        stageText = '第2階段：下課人潮 (+20%速)';
         badgeClass = 'bg-emerald-900/80 text-emerald-200 border-emerald-700';
       } else if (t < 360) {
-        stageText = '第3階段：黃金尖峰';
+        stageText = '第3階段：黃金尖峰 (+40%速)';
         badgeClass = 'bg-amber-900/80 text-amber-200 border-amber-700';
       } else if (t < 480) {
-        stageText = '第4階段：評審暗訪';
+        stageText = '第4階段：評審暗訪 (+60%速)';
         badgeClass = 'bg-purple-900/80 text-purple-200 border-purple-700';
       } else {
-        stageText = '第5階段：深夜狂潮';
+        stageText = '第5階段：深夜狂潮 (+80%速)';
         badgeClass = 'bg-rose-900/80 text-rose-200 border-rose-700';
       }
 
@@ -961,43 +959,62 @@
       for (let i = 0; i < count; i++) particles.push(new Particle(x, y, color));
     }
 
-    /* ================= 出怪管理器 ================= */
+    /* ================= 出怪管理器 (每階段加速 20%) ================= */
     function handleSpawning(dt) {
       if (isResting) return;
       spawnTimer += dt;
 
       const t = gameTime;
-      let interval = 6.0;
+      let interval = 5.5; // 第 1 階段基準
       let pool = ['student'];
+      let spawnDoubleChance = 0;
 
       if (t < 30) {
-        return;
+        return; // 前 30 秒和平期
       } else if (t < 120) {
+        // 第 1 階段：基準速度
         interval = 5.5;
         pool = ['student'];
       } else if (t < 240) {
-        interval = 3.8;
+        // 第 2 階段：加速 20% (間隔 x 0.8)
+        interval = 4.4;
         pool = ['student', 'auntie'];
       } else if (t < 360) {
-        interval = 3.0;
+        // 第 3 階段：再加速 20% (4.4 x 0.8 ≈ 3.52s)
+        interval = 3.5;
         pool = ['student', 'auntie', 'delivery'];
       } else if (t < 480) {
-        interval = 2.6;
+        // 第 4 階段：再加速 20% (3.52 x 0.8 ≈ 2.8s)
+        interval = 2.8;
         pool = ['auntie', 'delivery', 'critic'];
+        spawnDoubleChance = 0.25; // 25% 機率一次刷新兩隻
+        // 第 7 分鐘（420s）神秘客登場
         if (Math.abs(t - 420) < 0.5 && !customers.some(c => c.type === 'michelin')) {
           customers.push(new Customer('michelin', 2));
           playBellSound();
         }
       } else {
-        interval = 2.0;
+        // 第 5 階段：再加速 20% (2.8 x 0.8 ≈ 2.24s)
+        interval = 2.2;
         pool = ['student', 'auntie', 'delivery', 'critic'];
+        spawnDoubleChance = 0.35; // 35% 機率多路同時出怪
       }
 
       if (spawnTimer >= interval) {
         spawnTimer = 0;
-        const type = pool[Math.floor(Math.random() * pool.length)];
-        const row = Math.floor(Math.random() * ROWS);
-        customers.push(new Customer(type, row));
+        
+        // 刷出第 1 位
+        const type1 = pool[Math.floor(Math.random() * pool.length)];
+        const row1 = Math.floor(Math.random() * ROWS);
+        customers.push(new Customer(type1, row1));
+
+        // 機率刷出第 2 位（不同走道）
+        if (Math.random() < spawnDoubleChance) {
+          const type2 = pool[Math.floor(Math.random() * pool.length)];
+          let row2 = Math.floor(Math.random() * ROWS);
+          if (row2 === row1) row2 = (row2 + 1) % ROWS;
+          customers.push(new Customer(type2, row2));
+        }
       }
     }
 
@@ -1262,11 +1279,11 @@
       if (!isRunning) return;
       isPaused = !isPaused;
       if (isPaused) {
-        pauseBgm(); // 暫停時音樂暫停
+        pauseBgm();
         pauseModal.classList.remove('hidden');
         pauseModal.classList.add('flex');
       } else {
-        startBgm(); // 恢復時繼續播放
+        startBgm();
         pauseModal.classList.add('hidden');
         pauseModal.classList.remove('flex');
         lastTimestamp = performance.now();
@@ -1368,7 +1385,7 @@
 
     function endGame(victory) {
       isRunning = false;
-      pauseBgm(); // 結算時關閉音樂，強調結算音效
+      pauseBgm();
       endModal.classList.remove('hidden');
       endModal.classList.add('flex');
 
@@ -1454,7 +1471,6 @@
       startModal.classList.add('flex');
     });
 
-    // 遊戲音效開關
     document.getElementById('muteBtn').addEventListener('click', () => {
       isMuted = !isMuted;
       document.getElementById('muteBtn').textContent = isMuted ? '🔇' : '🔊';
